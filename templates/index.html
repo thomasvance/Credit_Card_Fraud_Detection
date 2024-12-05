@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credrit Card Fraud Detection</title>
+    <link rel="stylesheet" href="http://127.0.0.1:5000/static/styles.css">
+</head>
+<body>
+    <header>
+        <h1> Credrit Card Fraud Detection </h1>
+    </header>
+    <div class="container">
+        <!-- Filter Dropdown -->
+        <form method="POST" class="filter-form">
+            <label for="person">Select a Person:</label>
+            <select name="person" id="person">
+                <option value="">--Select--</option>
+                {% for name in names %}
+                    <option value="{{ name }}" {% if name == selected_person %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Show Details</button>
+        </form>
+
+        <!-- Person Details -->
+        {% if person_data %}
+        <div class="summary">
+            <h2>Details for {{ person_data['Person'] }}</h2>
+            <p><strong>Current Age:</strong> {{ person_data['Current Age'] }}</p>
+            <p><strong>Address:</strong> {{ person_data['Address'] }}</p>
+            <p><strong>Birthdate:</strong> {{ person_data['Birth Month'] }}/{{ person_data['Birth Year'] }}</p>
+            <p><strong>Yearly Income:</strong> ${{ person_data['Yearly Income - Person']|float }}</p>
+            <p><strong>Total Debt:</strong> ${{ person_data['Total Debt']|float }}</p>
+            <p><strong>Number of Credit Cards:</strong> {{ person_data['Num Credit Cards'] }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Map -->
+        <div class="map">
+            {{ map_html|safe }}
+        </div>
+    </div>
+</body>
+</html>

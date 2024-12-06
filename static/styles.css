@@ -17,49 +17,147 @@ header {
 }
 
 /* Container */
-.container {
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+    color: #333;
+}
+
+/* Header */
+header {
+    text-align: center;
+    background: #4CAF50;
+    color: white;
+    padding: 20px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Main container to hold the three sections */
+.main-container {
+    display: flex;
+    width: 100%; /* Ensure it takes full width */
+    height: 100vh; /* Full viewport height */
     padding: 20px;
-    max-width: 900px;
-    margin: 20px auto;
+    justify-content: space-between; /* Space between the containers */
+}
+
+/* Left container (for search and results) */
+.left-container {
+    width: 15%; /* 20% width for the left section */
+    padding: 10px;
     background: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
 }
 
-/* Form */
-.filter-form {
-    margin-bottom: 20px;
-    text-align: center;
+/* Right container (for the map) */
+.right-container {
+    width: 85%; /* 80% width for the map container */
+    padding: 20px;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
 }
 
-.filter-form select,
-.filter-form button {
+/* Search Input */
+.search-section {
+    margin-bottom: 10px;
+}
+
+.search-section input {
+    width: 100%;
     padding: 10px;
-    margin: 5px;
     border-radius: 5px;
     border: 1px solid #ccc;
     font-size: 16px;
 }
 
-.filter-form button {
-    background: #4CAF50;
-    color: white;
-    border: none;
+/* Search Results */
+.search-results {
+    margin-top: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+.underlined {
+    text-decoration: underline;
+}
+.result-item {
+    cursor: pointer;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+.result-item:hover {
+    background-color: #f0f0f0;
+}
+.card-box {
+    border: 2px solid #007BFF; /* Blue border */
+    border-radius: 8px;        /* Rounded corners */
+    padding: 10px;            /* Spacing inside the box */
+    margin: 10px;           /* Space around the box */
+    background-color: #f9f9f9; /* Light background color */
+    transition: transform 0.2s ease, box-shadow 0.2s ease; /* Smooth animations */
+    cursor: pointer;          /* Cursor changes to pointer */
+}
+
+.card-box:hover {
+    transform: scale(1.05);   /* Slightly enlarge the box */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add a shadow effect */
+    background-color: #e9f5ff; /* Change background color on hover */
+}
+
+/* Styling for the card details */
+.card-details {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+}
+
+.person-info div,
+.card-info div {
+    margin: 0px 0;
+}
+
+.person-info div strong,
+.card-info div strong {
+    font-weight: bold;
+}
+
+/* Add space between card details */
+.card-space {
+    height: 20px;
+}
+
+/* Optional: Styling for the search results */
+.search-results .result-item {
+    padding: 5px 10px;
     cursor: pointer;
 }
 
-.filter-form button:hover {
-    background: #45a049;
+.search-results .result-item:hover {
+    background-color: #f5f5f5;
 }
 
-/* Summary */
-.summary {
-    margin-bottom: 20px;
+/* Display the selected person's name */
+.selected-person {
+    margin-top: 20px;
+    font-weight: bold;
+    color: #4CAF50;
 }
 
 /* Map */
 .map {
+    height: 500px; /* Set height for the map */
+}
+
+.map iframe {
     width: 100%;
-    height: 500px;
-    margin-top: 20px;
+    height: 100%;
 }

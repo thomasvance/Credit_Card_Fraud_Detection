@@ -4,42 +4,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Credrit Card Fraud Detection</title>
-    <link rel="stylesheet" href="http://127.0.0.1:5000/static/styles.css">
+    <link rel="stylesheet" href="../static/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script> <!-- PapaParse for CSV parsing -->
 </head>
 <body>
     <header>
-        <h1> Credrit Card Fraud Detection </h1>
+        <h1> Credit Card Fraud Detection </h1>
+    
+    <!-- Embed the map -->
+    
     </header>
-    <div class="container">
-        <!-- Filter Dropdown -->
-        <form method="POST" class="filter-form">
-            <label for="person">Select a Person:</label>
-            <select name="person" id="person">
-                <option value="">--Select--</option>
-                {% for name in names %}
-                    <option value="{{ name }}" {% if name == selected_person %}selected{% endif %}>{{ name }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit">Show Details</button>
-        </form>
+    <link rel="stylesheet" href="../static/styles.css"> <!-- Link to styles.css -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script> <!-- PapaParse for CSV parsing -->
+    <script src="../js/Fraud_Alert.js" defer></script> <!-- Link to external JavaScript file -->
+</head>
+<body>
 
-        <!-- Person Details -->
-        {% if person_data %}
-        <div class="summary">
-            <h2>Details for {{ person_data['Person'] }}</h2>
-            <p><strong>Current Age:</strong> {{ person_data['Current Age'] }}</p>
-            <p><strong>Address:</strong> {{ person_data['Address'] }}</p>
-            <p><strong>Birthdate:</strong> {{ person_data['Birth Month'] }}/{{ person_data['Birth Year'] }}</p>
-            <p><strong>Yearly Income:</strong> ${{ person_data['Yearly Income - Person']|float }}</p>
-            <p><strong>Total Debt:</strong> ${{ person_data['Total Debt']|float }}</p>
-            <p><strong>Number of Credit Cards:</strong> {{ person_data['Num Credit Cards'] }}</p>
+
+
+    <div class="main-container">
+        <!-- Left Side: Search and Search Results (20% of screen) -->
+        <div class="left-container">
+            <!-- Search Section (20% of screen) -->
+            <div class="search-section">
+                <input type="text" id="search" placeholder="Search for a person..." oninput="filterNames()">
+            </div>
+            
+            <!-- Search Results Section -->
+            <div id="search-results" class="search-results">
+                <!-- Filtered names will appear here -->
+            </div>
+            <div id="selected-person" class="selected-person">
+                <!-- This will display the selected name -->
+            </div>
+            
+            <div id="card-details" class="card-details"></div>
+            
         </div>
-        {% endif %}
 
-        <!-- Map -->
-        <div class="map">
-            {{ map_html|safe }}
+        <!-- Right Side: Map Section (80% of screen) -->
+        <div class="right-container">
+            <!-- Map Section (80% of screen) -->
+            <iframe src="../static/user_map.html" width="95%" height="600px"></iframe>
+
+            <!-- Map (80% of the screen width) -->
+            <div class="map">
+                <div id="map-container"></div> <!-- This is where the map will be embedded -->
+            </div>
         </div>
     </div>
+
+    <!-- <script src="../js/Fraud_Alert.js" defer></script> Link to external JavaScript file -->
+
+    <script>
+        // Function to load and parse the CSV file directly from the static folder
+        window.onload = function() {
+            fetch('../static/Merged_card_user.csv')  // Path to the CSV file in the static folder
+                .then(response => response.text())
+                .then(csvData => {
+                    // Use PapaParse to parse the CSV data
+                    Papa.parse(csvData, {
+                        complete: function(results) {
+                            console.log('Parsed CSV:', results);
+                            displayCSVData(results.data); // Display parsed data
+                        },
+                        header: true // Set to true if the first row contains headers
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading CSV:', error);
+                });
+        };
+
+        // Function to display CSV data as a table
+        
+    </script>
 </body>
 </html>

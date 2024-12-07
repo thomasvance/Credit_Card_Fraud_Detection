@@ -52,23 +52,23 @@
 
     <script>
         // Function to load and parse the CSV file directly from the static folder
-        window.onload = function() {
-            fetch('../static/Merged_card_user.csv')  // Path to the CSV file in the static folder
-                .then(response => response.text())
-                .then(csvData => {
-                    // Use PapaParse to parse the CSV data
-                    Papa.parse(csvData, {
-                        complete: function(results) {
-                            console.log('Parsed CSV:', results);
-                            displayCSVData(results.data); // Display parsed data
-                        },
-                        header: true // Set to true if the first row contains headers
-                    });
-                })
-                .catch(error => {
-                    console.error('Error loading CSV:', error);
-                });
-        };
+        // window.onload = function() {
+        //     fetch('../static/Merged_card_user.csv')  // Path to the CSV file in the static folder
+        //         .then(response => response.text())
+        //         .then(csvData => {
+        //             // Use PapaParse to parse the CSV data
+        //             Papa.parse(csvData, {
+        //                 complete: function(results) {
+        //                     console.log('Parsed CSV:', results);
+        //                     displayCSVData(results.data); // Display parsed data
+        //                 },
+        //                 header: true // Set to true if the first row contains headers
+        //             });
+        //         })
+        //         .catch(error => {
+        //             console.error('Error loading CSV:', error);
+        //         });
+        // };
 
         // Function to display CSV data as a table
         

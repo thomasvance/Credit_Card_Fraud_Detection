@@ -1,139 +1,158 @@
-// csv_loader.js
+// Data_read.js
 
 let personData = [];
 let transactionsData = [];
-let groupedData = [];
+let groupedData = {};
 
-function checkDataReady() {
-    if (Array.isArray(personData) && personData.length > 0 &&
-        Array.isArray(transactionsData) && transactionsData.length > 0) {
-        document.dispatchEvent(new Event('dataLoaded'));
-        console.log('Both datasets are ready.');
-    } else {
-        console.log('Waiting for datasets to load...');
-    }
-}
+// Lookup table for transactions
+let transactionLookup = {};
 
-// In Data_read.js
-document.addEventListener('DOMContentLoaded', () => {
-    loadPersonData();
-    loadTransactionData();
+document.addEventListener('DOMContentLoaded', function () {
+    // Load person data, then transaction data, then combine them
+    loadPersonData()
+        .then(() => {
+            console.log('Person data loaded.');
+            return loadTransactionData();
+        })
+        .then(() => {
+            console.log('Transaction data loaded.');
+            buildTransactionLookup(); // Build lookup table for transactions
+            combineData();
+            console.log('Data combined into groupedData:', groupedData);
+
+            // Dispatch event to signal data is ready
+            document.dispatchEvent(new Event('dataLoaded'));
+        })
+        .catch(error => {
+            console.error('Error loading data:', error);
+        });
 });
 
 function loadPersonData() {
-    fetch('../static/Merged_card_user.csv')
-    .then(response => response.text())
-    .then(csvData => {
-        Papa.parse(csvData, {
-            complete: function (results) {
-                // console.log('Person Data Loaded:', results.data); // Debugging
-                personData = results.data.map(user => ({
-                    ...user,
-                    'Card Number': user['Card Number']?.slice(1),
-                    'CVV': user['CVV']?.slice(1)
-                }));
-                checkDataReady();
-            },
-            header: true,
-            skipEmptyLines: true,
-            error: function (error) {
-                console.error('Error during CSV parsing for person data:', error);
-            }
-        });
-    })
-    .catch(error => {
-        console.error('Error fetching person CSV data:', error);
+    return new Promise((resolve, reject) => {
+        fetch('../static/Merged_card_user.csv')
+            .then(response => response.text())
+            .then(csvData => {
+                Papa.parse(csvData, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function (results) {
+                        personData = results.data.map(person => ({
+                            ...person,
+                            'Card Number': person['Card Number'].slice(1), // Remove backtick
+                            'CVV': person['CVV'].slice(1) // Remove backtick
+                        }));
+                        resolve();
+                    },
+                    error: function (error) {
+                        reject(error);
+                    }
+                });
+            })
+            .catch(error => reject(error));
     });
 }
+
 function loadTransactionData() {
-    fetch('../static/mock_transactions.csv')
-    .then(response => response.text())
-    .then(csvData => {
-        Papa.parse(csvData, {
-            complete: function (results) {
-                // console.log('Transactions Data Loaded:', results.data); // Debugging
-                transactionsData = results.data.map(transaction => ({
-                    ...transaction,
-                    'Card Number': transaction['Card Number']?.slice(1),
-                    'CVV': transaction['CVV']?.slice(1)
-                }));
-                checkDataReady();
-            },
-            header: true,
-            skipEmptyLines: true,
-            error: function (error) {
-                console.error('Error during CSV parsing for transaction data:', error);
-            }
-        });
-    })
-   
-    .catch(error => {
-        console.error('Error fetching transaction CSV data:', error);
+    return new Promise((resolve, reject) => {
+        fetch('../static/mock_transactions.csv')
+            .then(response => response.text())
+            .then(csvData => {
+                Papa.parse(csvData, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function (results) {
+                        transactionsData = results.data.map(transaction => ({
+                            ...transaction,
+                            'Card Number': transaction['Card Number'].slice(1), // Remove backtick
+                            'CVV': transaction['CVV'].slice(1) // Remove backtick
+                        }));
+                        resolve();
+                    },
+                    error: function (error) {
+                        reject(error);
+                    }
+                });
+            })
+            .catch(error => reject(error));
     });
-    
 }
 
+function buildTransactionLookup() {
+    transactionLookup = {};
 
-
-// Load both CSVs once when the page loads
-window.onload = function() {
-    fetch('../static/Merged_card_user.csv') // Path to CSV file
-        .then(response => response.text())
-        .then(csvData => {
-            Papa.parse(csvData, {
-                complete: function(results) {
-                    personData = results.data; // Assign parsed data
-                    normalizePersonData(personData); // Normalize names for consistent searching
-                    groupByUser(personData);  // Group by User
-                    // console.log('Grouped Data:', groupedData);  // Check grouped data
-
-                    // Initialize the search functionality
-                    document.getElementById('search').addEventListener('input', filterNames);
-                },
-                header: true,
-                skipEmptyLines: true,
-                delimiter: ",",
-            });
-        })
-        .catch(error => {
-            console.error('Error loading CSV:', error);
-        });
-};
-
-
-function normalizePersonData(data) {
-    data.forEach(user => {
-        if (user.info && user.info['Person']) {
-            user.info['Person'] = user.info['Person'].trim().toLowerCase();
+    transactionsData.forEach(transaction => {
+        const key = `${transaction['Card Number']}_${transaction['CVV']}`;
+        if (!transactionLookup[key]) {
+            transactionLookup[key] = [];
         }
+        transactionLookup[key].push({
+            date: transaction['Date'],
+            time: transaction['Time'],
+            amount: transaction['Amount'],
+            errors: transaction['Errors?'],
+            useChip: transaction['Use Chip'],
+            isFraud: transaction['Is Fraud?'],
+            city: transaction['City'],
+            state: transaction['State'],
+            latitude: parseFloat(transaction['Latitude']),
+            longitude: parseFloat(transaction['Longitude'])
+        });
     });
 }
 
-// Call this function after personData is fully loaded
+function combineData() {
+    groupedData = {};
 
-// Load both CSVs once when the page loads
+    // Group person data by user
+    personData.forEach(person => {
+        const userId = person.User;
 
+        if (!groupedData[userId]) {
+            groupedData[userId] = {
+                name: capitalizeName(person.Person),
+                info: {
+                    name: capitalizeName(person.Person),
+                    currentAge: person['Current Age'],
+                    retirementAge: person['Retirement Age'],
+                    birthYear: person['Birth Year'],
+                    birthMonth: person['Birth Month'],
+                    gender: person['Gender'],
+                    address: person['Address'],
+                    city: person['City'],
+                    state: person['State'],
+                    zipcode: person['Zipcode'],
+                    latitude: person['Latitude'],
+                    longitude: person['Longitude'],
+                    perCapitaIncome: person['Per Capita Income - Zipcode'],
+                    yearlyIncome: person['Yearly Income - Person'],
+                    totalDebt: person['Total Debt'],
+                    ficoScore: person['FICO Score'],
+                    numCreditCards: person['Num Credit Cards']
+                },
+                details: []
+            };
+        }
 
+        groupedData[userId].details.push({
+            cardType: person['Card Type'],
+            cardNumber: person['Card Number'],
+            expires: person['Expires'],
+            cvv: person['CVV'],
+            hasChip: person['Has Chip'],
+            creditLimit: person['Credit Limit'],
+            accountBalance: person['Account Balance'],
+            acctOpenDate: person['Acct Open Date'],
+            yearPinLastChanged: person['Year PIN last Changed'],
+            cardOnDarkWeb: person['Card on Dark Web'],
+            transactions: transactionLookup[`${person['Card Number']}_${person['CVV']}`] || []
+        });
+    });
+}
 
-// fetch('../static/Merged_card_user.csv')
-//     .then(response => response.text())
-//     .then(csvData => {
-//         console.log('Raw Person CSV Data:', csvData);
-//         Papa.parse(csvData, {
-//             complete: function (results) {
-//                 console.log('Parsed Person Data:', results.data);
-//             },
-//             header: true,
-//             skipEmptyLines: true
-//         });
-//     })
-//     .catch(error => console.error('Error fetching or parsing person data:', error));
-// function checkDataReady() {
-//     if (Array.isArray(personData) && personData.length > 0 && Array.isArray(transactionsData) && transactionsData.length > 0) {
-//         document.dispatchEvent(new Event('dataLoaded'));
-//         console.log('Both datasets loaded successfully.');
-//     } else {
-//         console.log('Waiting for datasets to load...');
-//     }
-// }
-    
+function capitalizeName(name) {
+    return name
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+}

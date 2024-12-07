@@ -164,7 +164,7 @@ function renderCharts(transactions) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false, // Allow flexibility in container dimensions
+            maintainAspectRatio: true, // Allow flexibility in container dimensions
             scales: {
                 x: { title: { display: true, text: 'Date and Time' } },
                 y: { title: { display: true, text: 'Amount ($)' }, beginAtZero: true }
@@ -187,7 +187,7 @@ function renderCharts(transactions) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
+            maintainAspectRatio: true,
             scales: {
                 x: { title: { display: true, text: 'Latitude' } },
                 y: { title: { display: true, text: 'Longitude' } }

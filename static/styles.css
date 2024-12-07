@@ -18,29 +18,13 @@ header {
 }
 
 /* Container */
-/* General Styles */
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f9f9f9;
-    color: #333;
-}
 
-/* Header */
-header {
-    text-align: center;
-    background: #4CAF50;
-    color: white;
-    padding: 20px 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
 
 /* Main container to hold the three sections */
 .main-container {
     display: flex;
-    width: 100%; /* Ensure it takes full width */
-    height: 100vh; /* Full viewport height */
+    width: 95%; /* Ensure it takes full width */
+    height: 90vh; /* Full viewport height */
     padding: 20px;
     justify-content: space-between; /* Space between the containers */
 }
@@ -48,6 +32,7 @@ header {
 /* Left container (for search and results) */
 .left-container {
     width: 20%; /* 20% width for the left section */
+    height: 10%;
     padding: 10px;
     background: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -56,20 +41,29 @@ header {
 
 /* Right container (for the map) */
 .right-container {
-    width: 50%;
+    width: 100%;
     height: 100%;
     padding: 20px;
     background: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
 }
-.chart-container {
-    width: 50%;
-    height: 100%;
-    padding: 20px;
-    background: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border-radius: 20px;
+.charts-container {
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 4px rgba(0, 60, 255, 0.1);
+    gap: 20px;
+}
+
+.chart-wrapper {
+    width: 100%;
+    height: 50px; /* Set a fixed height for charts */
+    position: relative; /* Required for Chart.js responsiveness */
+}
+
+canvas {
+    width: 75% !important; /* Ensure canvas fits container */
+    height: 40% !important; /* Ensure canvas fits container */
 }
 /* Search Input */
 .search-section {

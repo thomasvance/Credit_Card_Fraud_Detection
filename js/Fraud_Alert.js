@@ -1,5 +1,6 @@
 // Fraud_Alert.js
-
+let expandedCards = [];
+let cardLookup = {};
 document.addEventListener('dataLoaded', () => {
     console.log('Data loaded and ready:', groupedData);
 
@@ -86,7 +87,6 @@ function showUserDetails(userData) {
     userData.details.forEach((card, index) => {
         const cardDiv = document.createElement('div');
         cardDiv.classList.add('card-info');
-        cardDiv.setAttribute('id', `card-${index}`);
 
         const cardHeader = document.createElement('div');
         cardHeader.classList.add('card-box');
@@ -112,31 +112,67 @@ function showUserDetails(userData) {
             <div><strong>Card on Dark Web:</strong> ${card.cardOnDarkWeb}</div>
         `;
 
+        const cardId = userData.info.name.replace(/\s+/g, '_').toLowerCase() + '_' + index;
+        cardLookup[cardId] = card;
         // Toggle card details visibility and load transactions
         cardHeader.addEventListener('click', function () {
-    // If charts are already visible, hide them
-    const chartsContainer = document.getElementById('charts-container');
-    if (chartsContainer.style.display === 'flex') {
-        resetLayout();
-        cardDetails.style.display = 'none';
-    } else {
-        cardDetails.style.display = 'block';
-        // Show charts
-        chartsContainer.style.display = 'flex';
-        document.querySelector('.left-container').style.flex = '2';  // 20%
-        document.querySelector('.charts-container').style.flex = '3'; // 30%
-        document.querySelector('.right-container').style.flex = '5';  // 50%
-        
-        // Render charts after making the container visible
-        renderCharts(card.transactions);
-    }
-});
+            if (cardDetails.style.display === 'none') {
+                // Expanding
+                cardDetails.style.display = 'block';
+                expandedCards.push(cardId);
+                showChartsForLastExpandedCard();
+            } else {
+                // Collapsing
+                cardDetails.style.display = 'none';
+                expandedCards = expandedCards.filter(id => id !== cardId);
+                showChartsForLastExpandedCard();
+            }
+        });
 
         cardDiv.appendChild(cardHeader);
         cardDiv.appendChild(cardDetails);
         detailsContainer.appendChild(cardDiv);
     });
 }
+function findCardById(id) {
+    return cardLookup[id];
+}
+
+function showChartsForLastExpandedCard() {
+    const chartsContainer = document.getElementById('charts-container');
+
+    if (expandedCards.length === 0) {
+        chartsContainer.style.display = 'none';
+        resetLayout();
+        destroyCharts(); // Make sure this is defined
+        return;
+    }
+
+    const activeCardId = expandedCards[expandedCards.length - 1];
+    const activeCard = findCardById(activeCardId);
+
+    chartsContainer.style.display = 'flex';
+    document.querySelector('.left-container').style.flex = '2';  
+    document.querySelector('.charts-container').style.flex = '3';
+    document.querySelector('.right-container').style.flex = '5';
+
+    renderCharts(activeCard.transactions);
+
+    if (transactionChartInstance) transactionChartInstance.resize();
+    if (locationChartInstance) locationChartInstance.resize();
+}
+
+function destroyCharts() {
+    if (transactionChartInstance) {
+        transactionChartInstance.destroy();
+        transactionChartInstance = null;
+    }
+    if (locationChartInstance) {
+        locationChartInstance.destroy();
+        locationChartInstance = null;
+    }
+}
+
 
 // Render charts for a given card's transactions
 // Keep references to existing charts

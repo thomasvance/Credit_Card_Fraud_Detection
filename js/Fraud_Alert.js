@@ -1,83 +1,11 @@
-let personData = [];  
-let groupedData = {}; // Declare 'groupedData' as well to avoid implicit global variables
+document.addEventListener('dataLoaded', () => {
+    console.log('Data loaded successfully. Initializing Fraud Alert...');
+    groupByUser(personData); // Group the users
+    associateTransactions(); // Associate transactions with users
+    console.log('Grouped Data:', groupedData);
+});
 
-// Load CSV data
-window.onload = function() {
-    fetch('../static/Merged_card_user.csv') // Path to CSV file
-        .then(response => response.text())
-        .then(csvData => {
-            Papa.parse(csvData, {
-                complete: function(results) {
-                    personData = results.data; // Assign parsed data
-                    groupByUser(personData);  // Group by User
-                    console.log('Grouped Data:', groupedData);  // Check grouped data
 
-                    // Initialize the search functionality
-                    document.getElementById('search').addEventListener('input', filterNames);
-                },
-                header: true,
-                skipEmptyLines: true,
-                delimiter: ",",
-            });
-        })
-        .catch(error => {
-            console.error('Error loading CSV:', error);
-            
-        }); 
-};
-
-    function parseCSV(csvData) {
-        const rows = csvData.split('\n');
-        const headers = rows[0].split(',');
-    
-        rows.slice(1).forEach(row => {
-            const cols = row.split(',');
-    
-            const user = cols[0]; // Unique identifier (e.g., User ID)
-            const personInfo = {
-                name: cols[1],                 // Name
-                currentAge: cols[2],           // Current Age
-                retirementAge: cols[3],        // Retirement Age
-                birthYear: cols[4],            // Birth Year
-                birthMonth: cols[5],           // Birth Month
-                gender: cols[6],               // Gender
-                address: cols[7],              // Address
-                city: cols[8],                 // City
-                state: cols[9],                // State
-                zipcode: cols[10],             // Zipcode
-                latitude: cols[11],            // Latitude
-                longitude: cols[12],           // Longitude
-                perCapitaIncome: cols[13],     // Per Capita Income
-                yearlyIncome: cols[14],        // Yearly Income
-                totalDebt: cols[15],           // Total Debt
-                ficoScore: cols[16],           // FICO Score
-                numCreditCards: cols[17],      // Number of Credit Cards
-            };
-    
-            // Initialize if the user doesn't exist yet
-            if (!personData[user]) {
-                personData[user] = {
-                    info: personInfo,
-                    details: [] // Credit card details will be added here
-                };
-            }
-    
-            // Add the credit card details
-            const cardDetails = {
-                cardType: cols[18],
-                cardNumber: cols[19],
-                expires: cols[20],
-                cvv: cols[21],
-                hasChip: cols[22],
-                creditLimit: cols[23],
-                acctOpenDate: cols[24],
-                yearPinLastChanged: cols[25],
-                cardOnDarkWeb: cols[26]
-            };
-    
-            personData[user].details.push(cardDetails);
-        });
-    }
 // Group the data by User
 function groupByUser(data) {
     groupedData = {};
@@ -87,7 +15,7 @@ function groupByUser(data) {
 
         if (!groupedData[userId]) {
             groupedData[userId] = {
-                name: person.Person, // Use the `Person` column for the name
+                name: capitalizeName(person.Person), // Use the `Person` column for the name with proper capitalization
                 info: {},            // Add an `info` field for user details
                 details: []          // Store all card details for that user
             };
@@ -95,7 +23,7 @@ function groupByUser(data) {
 
         // Populate the `info` field
         groupedData[userId].info = {
-            name: person.Person, // Ensure the name is also in the `info` object
+            name: capitalizeName(person.Person), // Ensure the name is also in the `info` object with proper capitalization
             currentAge: person['Current Age'],
             retirementAge: person['Retirement Age'],
             birthYear: person['Birth Year'],
@@ -122,19 +50,84 @@ function groupByUser(data) {
             cvv: person['CVV'],
             hasChip: person['Has Chip'],
             creditLimit: person['Credit Limit'],
+            accountBalance: person['Account Balance'], 
             acctOpenDate: person['Acct Open Date'],
             yearPinLastChanged: person['Year PIN last Changed'],
-            cardOnDarkWeb: person['Card on Dark Web']
+            cardOnDarkWeb: person['Card on Dark Web'],
+            transactions: [] // Add an empty array to store transactions later
         });
     });
 
-    console.log('Grouped Data:', groupedData); // Log the final grouped structure
+     // Log the final grouped structure
 }
 
+function buildCardLookupMap() {
+    const cardLookup = {};
 
-// Search function to filter unique names as user types
+    for (const userId in groupedData) {
+        const user = groupedData[userId];
+        user.details.forEach(card => {
+            const cardKey = `${card.cardNumber}-${card.cvv}`; // Unique key for each card
+            cardLookup[cardKey] = card;
+        });
+    }
+
+    return cardLookup;
+}
+
+function associateTransactions() {
+    if (!transactionsData || transactionsData.length === 0) {
+        console.error('No transactions data available to process.');
+        return;
+    }
+
+    const cardLookup = buildCardLookupMap(); // Build a lookup map for quick matching
+
+    transactionsData.forEach(transaction => {
+        const cardNumber = transaction['Card Number']; // Remove backtick
+        const cvv = transaction['CVV']; // Remove backtick
+        if (!cardNumber || !cvv) {
+            console.warn('Skipping transaction with invalid Card Number or CVV:', transaction);
+            return;
+        }
+
+        const cardKey = `${cardNumber}-${cvv}`; // Match against lookup key
+        const matchingCard = cardLookup[cardKey];
+
+        if (matchingCard) {
+            // Ensure transactions array exists
+            if (!matchingCard.transactions) {
+                matchingCard.transactions = [];
+            }
+
+            // Append transaction
+            matchingCard.transactions.push({
+                cardNum: transaction['Card Number'], 
+                date: transaction['Date'],
+                time: transaction['Time'],
+                amount: transaction['Amount'], // Convert to number
+                errors: transaction['Errors?'],
+                useChip: transaction['Use Chip'],
+                isFraud: transaction['Is Fraud?'],
+                city: transaction['City'],
+                state: transaction['State'],
+                latitude: parseFloat(transaction['Latitude']),
+                longitude: parseFloat(transaction['Longitude'])
+                
+            });
+            // console.log(cardNum)
+        } else {
+            console.warn('No matching card found for transaction:', transaction);
+        }
+    });
+
+    // console.log('Grouped Data with Transactions:', groupedData); // Debugging
+}
+ 
+
+// Function to filter unique names as user types
 function filterNames() {
-    const searchTerm = document.getElementById('search').value.toLowerCase();
+    const searchTerm = document.getElementById('search').value.toLowerCase().trim();
     const filteredUsers = Object.values(groupedData).filter(user =>
         user.name.toLowerCase().startsWith(searchTerm)  // Match names starting with the search term
     );
@@ -166,7 +159,7 @@ function displaySearchResults(filteredUsers) {
             showCardDetails(user);  // Show details below
             clearSearchResults(); // Clear search results
         });
-
+        
         resultDiv.appendChild(nameDiv);
         resultsContainer.appendChild(resultDiv);
     });
@@ -178,13 +171,8 @@ function clearSearchResults() {
     resultsContainer.innerHTML = '';  // Clear search results after selection
 }
 
-
 // Show the full details when a name is clicked
 function showCardDetails(userData) {
-    
-    console.log(personData);
-
-    
     const detailsContainer = document.getElementById('card-details');
     detailsContainer.innerHTML = ''; // Clear previous data
 
@@ -195,22 +183,61 @@ function showCardDetails(userData) {
     personInfoDiv.classList.add('person-info');
     
     personInfoDiv.innerHTML = `
-    <div><strong><span class="underlined">Name : </span></strong><span class="underlined">${personInfo.name}</span></div>
-    <div><strong><span class="underlined">Address : </span></strong><span class="underlined">${personInfo.address}</span></div>
-    <div><strong><span class="underlined">City : </span></strong><span class="underlined">${personInfo.city}</span></div>
-    <div><strong><span class="underlined">State : </span></strong><span class="underlined">${personInfo.state}</span></div>
-    <div><strong><span class="underlined">Zipcode : </span></strong><span class="underlined">${personInfo.zipcode}</span></div>
-    <div><strong><span class="underlined">Birth Month : </span></strong><span class="underlined">${personInfo.birthMonth}</span></div>
-    <div><strong><span class="underlined">Birth Year : </span></strong><span class="underlined">${personInfo.birthYear}</span></div>
-    <div><strong><span class="underlined">Current Age : </span></strong><span class="underlined">${personInfo.currentAge}</span></div>
-    <div><strong><span class="underlined">Retirement Age : </span></strong><span class="underlined">${personInfo.retirementAge}</span></div>
-    <div><strong><span class="underlined">Gender : </span></strong><span class="underlined">${personInfo.gender}</span></div>
-    <div><strong><span class="underlined">Total Debt : </span></strong><span class="underlined">${personInfo.totalDebt}</span></div>
-    <div><strong><span class="underlined">FICO Score : </span></strong><span class="underlined">${personInfo.ficoScore}</span></div>
-    <div><strong><span class="underlined">Num Credit Cards : </span></strong><span class="underlined">${personInfo.numCreditCards}</span></div>
-`;
-
-
+    <table>
+        <tr>
+            <td><strong>Name:</strong></td>
+            <td>${capitalizeName(personInfo.name)}</td>
+        </tr>
+        <tr>
+            <td><strong>Address:</strong></td>
+            <td>${personInfo.address}</td>
+        </tr>
+        <tr>
+            <td><strong>City:</strong></td>
+            <td>${personInfo.city}</td>
+        </tr>
+        <tr>
+            <td><strong>State:</strong></td>
+            <td>${personInfo.state}</td>
+        </tr>
+        <tr>
+            <td><strong>Zipcode:</strong></td>
+            <td>${personInfo.zipcode}</td>
+        </tr>
+        <tr>
+            <td><strong>Birth Month:</strong></td>
+            <td>${personInfo.birthMonth}</td>
+        </tr>
+        <tr>
+            <td><strong>Birth Year:</strong></td>
+            <td>${personInfo.birthYear}</td>
+        </tr>
+        <tr>
+            <td><strong>Current Age:</strong></td>
+            <td>${personInfo.currentAge}</td>
+        </tr>
+        <tr>
+            <td><strong>Retirement Age:</strong></td>
+            <td>${personInfo.retirementAge}</td>
+        </tr>
+        <tr>
+            <td><strong>Gender:</strong></td>
+            <td>${personInfo.gender}</td>
+        </tr>
+        <tr>
+            <td><strong>Total Debt:</strong></td>
+            <td>${personInfo.totalDebt}</td>
+        </tr>
+        <tr>
+            <td><strong>FICO Score:</strong></td>
+            <td>${personInfo.ficoScore}</td>
+        </tr>
+        <tr>
+            <td><strong>Num Credit Cards:</strong></td>
+            <td>${personInfo.numCreditCards}</td>
+        </tr>
+    </table>
+    `;
 
     detailsContainer.appendChild(personInfoDiv);
 
@@ -218,7 +245,7 @@ function showCardDetails(userData) {
     const cardSpace = document.createElement('div');
     cardSpace.classList.add('card-space');
     detailsContainer.appendChild(cardSpace);
-    
+
     // Add credit card details
     userData.details.forEach((card, index) => {
         const cardDiv = document.createElement('div');
@@ -232,31 +259,192 @@ function showCardDetails(userData) {
 
         const cardDetails = document.createElement('div');
         cardDetails.classList.add('card-details');
-        cardDetails.style.display = 'none';
+        cardDetails.style.display = 'none';  // Start with hidden card details
+
+        const balanceOrLimit = card.cardType === 'Credit' 
+            ? `<strong>Credit Limit:</strong> ${card.creditLimit}` 
+            : `<strong>Account Balance:</strong> ${card.accountBalance}`;
         
         cardDetails.innerHTML = `
             <div><strong>Card Number:</strong> ${card.cardNumber.slice(1)}</div>
-            <div><strong>Expires:</strong> ${card.expires}</div>
-            <div><strong>CVV:</strong> ${card.cvv}</div>
+            <div><strong>Expires:</strong></div>
+            <div><strong>CVV:</strong> ${card.cvv.slice(1)}</div>
             <div><strong>Has Chip:</strong> ${card.hasChip}</div>
-            <div><strong>Credit Limit:</strong> ${card.creditLimit}</div>
+            <div>${balanceOrLimit}</div>
             <div><strong>Account Open Date:</strong> ${card.acctOpenDate}</div>
             <div><strong>Year PIN Last Changed:</strong> ${card.yearPinLastChanged}</div>
             <div><strong>Card on Dark Web:</strong> ${card.cardOnDarkWeb}</div>
         `;
 
+        // Toggle visibility
         cardHeader.addEventListener('click', function () {
             cardDetails.style.display = cardDetails.style.display === 'none' ? 'block' : 'none';
+            
+            if (cardDetails.style.display === 'block') {
+                console.log('Card clicked:', card.cardNumber.slice(1));
+                
+                onCardClick(card); // Pass the clicked card
+        
+                // Render the transactions chart
+                createTransactionCharts(transaction, 'transactionsChart');
+        
+                // Optionally render another chart (e.g., location-based) in 'locationChart'
+                // Example: Plotting latitude and longitude
+                createLocationChart(transaction, 'locationChart');
+            }
+            // const card = card.carNumber.slice(1);
         });
-
+        
         cardDiv.appendChild(cardHeader);
         cardDiv.appendChild(cardDetails);
         detailsContainer.appendChild(cardDiv);
+        
+    });
+}
+function onCardClick(card) {
+    const transactions = card.transactions || [];
+    if (transactions.length === 0) {
+        console.warn(`No transactions found for card: ${card.cardNumber}`);
+        return;
+    }
 
-        const blankSpace = document.createElement('div');
-        blankSpace.classList.add('card-space');
-        detailsContainer.appendChild(blankSpace);
+    console.log(`Transactions for card ${card.cardNumber}:`, transactions);
+
+    // Generate charts for this card
+    createTransactionCharts(transactions, 'transactionsChart');
+    createLocationChart(transactions, 'locationChart');
+}
+// Helper function to capitalize the first letter of each word in a name
+function capitalizeName(name) {
+    return name.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+}
+
+
+
+// Function to create the transaction charts
+// Function to create the transaction amount chart
+function createTransactionCharts(transactions, canvasId) {
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) {
+        console.error(`Canvas with ID "${canvasId}" not found.`);
+        return;
+    }
+
+    // Clear any existing chart
+    if (Chart.getChart(canvasId)) {
+        Chart.getChart(canvasId).destroy();
+    }
+
+    // Sort transactions by date and time
+    const sortedTransactions = transactions.sort((a, b) => 
+        new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time)
+    );
+
+    // Create the chart
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: sortedTransactions.map(t => t.date + ' ' + t.time), // Combine date and time
+            datasets: [{
+                label: 'Transaction Amount ($)',
+                data: sortedTransactions.map(t => parseFloat(t.amount)), // Ensure numeric values
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Date and Time'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Amount ($)'
+                    },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+// Function to create the location scatter plot
+function createLocationChart(transactions, canvasId) {
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) {
+        console.error(`Canvas with ID "${canvasId}" not found.`);
+        return;
+    }
+
+    // Destroy any existing chart instance
+    if (Chart.getChart(canvasId)) {
+        Chart.getChart(canvasId).destroy();
+    }
+
+    new Chart(ctx, {
+        type: 'scatter',
+        data: {
+            datasets: [{
+                label: 'Transaction Locations',
+                data: transactions.map(transaction => ({
+                    x: transaction.latitude,
+                    y: transaction.longitude
+                })),
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1,
+                pointRadius: 5
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Transaction Locations'
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Latitude'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Longitude'
+                    }
+                }
+            }
+        }
     });
 }
 
 
+// // Function to handle card clicks
+// function onCardClick(card) {
+//     const transactions = card.transactions || [];
+//     if (!transactions.length) {
+//         console.warn('No transactions available for this card.');
+//         return;
+//     }
+
+//     console.log('Rendering charts for transactions:', transactions);
+
+//     // Generate both charts
+//     createTransactionCharts(transactions, 'amountChart');
+//     createLocationChart(transactions, 'locationChart');
+// }
+
+// Attach chart generation to card click

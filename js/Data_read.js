@@ -4,6 +4,9 @@ let personData = [];
 let transactionsData = [];
 let groupedData = {};
 
+
+
+
 // Lookup table for transactions
 let transactionLookup = {};
 

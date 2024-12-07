@@ -12,7 +12,7 @@ header {
     text-align: center;
     background: #4CAF50;
     color: white;
-    padding: 15px 0;
+    padding: 10px 0;
     font-size: 32px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -23,48 +23,67 @@ header {
 /* Main container to hold the three sections */
 .main-container {
     display: flex;
-    width: 95%; /* Ensure it takes full width */
-    height: 90vh; /* Full viewport height */
+    width: 100vw;
+    height: 80vh;
     padding: 20px;
-    justify-content: space-between; /* Space between the containers */
+    gap: 10px;
+    box-sizing: border-box;
+    box-shadow: 0 2px 4px rgb(255, 0, 0);
 }
 
-/* Left container (for search and results) */
+/* Left: 20%, Right: 80% when charts are hidden */
 .left-container {
-    width: 20%; /* 20% width for the left section */
-    height: 10%;
-    padding: 10px;
+    flex: 1; /* Out of a total of 2+8=10, this is 20% */
+    height: auto;
     background: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
+    overflow-y: auto;
 }
 
-/* Right container (for the map) */
 .right-container {
-    width: 100%;
-    height: 100%;
-    padding: 20px;
+    flex: 8; /* Out of 2+8=10, ~80% */
     background: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
-}
-.charts-container {
     display: flex;
     flex-direction: column;
-    box-shadow: 0 2px 4px rgba(0, 60, 255, 0.1);
-    gap: 20px;
 }
 
-.chart-wrapper {
+.map {
+    flex: 1;
     width: 100%;
-    height: 50px; /* Set a fixed height for charts */
-    position: relative; /* Required for Chart.js responsiveness */
+    position: relative;
+}
+
+#map-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    position: relative;
+}
+
+/* Charts container hidden initially */
+.charts-container {
+    display: none;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    flex-direction: column;
+    gap: 5px;
+}
+
+/* Chart wrapper takes half height each when visible */
+.chart-wrapper {
+    flex: 1;
+    position: relative;
+    gap: 5px;
 }
 
 canvas {
-    width: 75% !important; /* Ensure canvas fits container */
-    height: 40% !important; /* Ensure canvas fits container */
+    width: 100% !important;
+    height: 100% !important;
 }
+
+
 /* Search Input */
 .search-section {
     margin-bottom: 10px;

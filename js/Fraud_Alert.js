@@ -114,13 +114,23 @@ function showUserDetails(userData) {
 
         // Toggle card details visibility and load transactions
         cardHeader.addEventListener('click', function () {
-            cardDetails.style.display = cardDetails.style.display === 'none' ? 'block' : 'none';
-
-            if (cardDetails.style.display === 'block') {
-                console.log('Transactions for card:', card.transactions);
-                renderCharts(card.transactions);
-            }
-        });
+    // If charts are already visible, hide them
+    const chartsContainer = document.getElementById('charts-container');
+    if (chartsContainer.style.display === 'flex') {
+        resetLayout();
+        cardDetails.style.display = 'none';
+    } else {
+        cardDetails.style.display = 'block';
+        // Show charts
+        chartsContainer.style.display = 'flex';
+        document.querySelector('.left-container').style.flex = '2';  // 20%
+        document.querySelector('.charts-container').style.flex = '3'; // 30%
+        document.querySelector('.right-container').style.flex = '5';  // 50%
+        
+        // Render charts after making the container visible
+        renderCharts(card.transactions);
+    }
+});
 
         cardDiv.appendChild(cardHeader);
         cardDiv.appendChild(cardDetails);
@@ -192,7 +202,43 @@ function renderCharts(transactions) {
                 x: { title: { display: true, text: 'Latitude' } },
                 y: { title: { display: true, text: 'Longitude' } }
             }
+            
         }
-    });
+
+
+    });        
+    document.getElementById('charts-container').style.display = 'flex';
+
+    // Adjust flex values for desired layout
+    document.querySelector('.left-container').style.flex = '2';  // 20%
+    document.querySelector('.charts-container').style.flex = '3'; // 30%
+    document.querySelector('.right-container').style.flex = '5';  // 50%
+
+    // If needed, call chart.resize() after container is visible
+    if (transactionChartInstance) transactionChartInstance.resize();
+    if (locationChartInstance) locationChartInstance.resize();
 }
+function resetLayout() {
+    // Hide the charts container
+    document.getElementById('charts-container').style.display = 'none';
+
+    // Reset flex values to original layout
+    document.querySelector('.left-container').style.flex = '2';  // 20%
+    document.querySelector('.right-container').style.flex = '8'; // 80%
+
+    // If you have chart instances, destroy them to prevent memory leaks
+    if (transactionChartInstance) {
+        transactionChartInstance.destroy();
+        transactionChartInstance = null;
+    }
+    if (locationChartInstance) {
+        locationChartInstance.destroy();
+        locationChartInstance = null;
+    }
+}
+
+// Call resetLayout whenever the user starts a new search
+document.getElementById('search').addEventListener('input', () => {
+    resetLayout();
+});
 

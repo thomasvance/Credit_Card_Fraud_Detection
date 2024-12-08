@@ -12,59 +12,86 @@ header {
     text-align: center;
     background: #4CAF50;
     color: white;
-    padding: 20px 0;
+    padding: 10px 0;
+    font-size: 32px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Container */
-/* General Styles */
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f9f9f9;
-    color: #333;
-}
 
-/* Header */
-header {
-    text-align: center;
-    background: #4CAF50;
-    color: white;
-    padding: 20px 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
 
 /* Main container to hold the three sections */
 .main-container {
     display: flex;
-    width: 100%; /* Ensure it takes full width */
-    height: 100vh; /* Full viewport height */
+    width: 100vw;
+    height: 80vh;
     padding: 20px;
-    justify-content: space-between; /* Space between the containers */
+    gap: 10px;
+    box-sizing: border-box;
+    box-shadow: 0 2px 4px rgb(255, 0, 0);
 }
 
-/* Left container (for search and results) */
+/* Left: 20%, Right: 80% when charts are hidden */
 .left-container {
-    width: 15%; /* 20% width for the left section */
-    padding: 10px;
+    flex: 0 0 300px; /* Fixed width of 300px */
+    max-width: 325px;
+    min-width: 325px;
+    height: 100%;
     background: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
+    overflow-y: auto;
 }
 
-/* Right container (for the map) */
 .right-container {
-    width: 85%; /* 80% width for the map container */
-    padding: 20px;
-    background: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    flex: 7;
+    max-height: 100%; /* Prevent infinite growth */
+    overflow: hidden;
 }
+
+
+.map {
+    flex: 1;
+    width: 100%;
+    position: relative;
+}
+
+#map-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    position: relative;
+}
+
+/* Charts container hidden initially */
+.charts-container {
+    display: flex;
+    flex-direction: column; /* Stack charts vertically */
+    gap: 10px; /* Space between charts */
+    max-height: 100%; /* Prevent growing beyond its parent container */
+    overflow: hidden; /* Prevent content overflow */
+}
+
+/* Chart wrapper takes half height each when visible */
+.chart-wrapper {
+    flex: 1; /* Equal height for each chart */
+    position: relative; /* Required for Chart.js to position elements correctly */
+    max-height: 50%; /* Prevent it from occupying more space than intended */
+    overflow: hidden; /* Prevent overflow issues */
+}
+
+canvas {
+    width: 100% !important;
+    height: 100% !important;
+    box-sizing: border-box;
+}
+
 
 /* Search Input */
 .search-section {
     margin-bottom: 10px;
+    width: 80%;
 }
 
 .search-section input {
@@ -143,6 +170,24 @@ header {
 
 .search-results .result-item:hover {
     background-color: #f5f5f5;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+td {
+    padding: 8px;
+    border: 1px solid #ddd;
+}
+strong {
+    font-weight: bold;
+}
+tr:nth-child(even) {
+    background-color: #f2f2f2; /* Light gray */
+}
+
+tr:nth-child(odd) {
+    background-color: #ffffff; /* White */
 }
 
 /* Display the selected person's name */

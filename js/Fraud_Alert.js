@@ -1,151 +1,34 @@
-let personData = [];  
-let groupedData = {}; // Declare 'groupedData' as well to avoid implicit global variables
+// Fraud_Alert.js
+// Fraud_Alert.js
+let expandedCards = [];
+let cardLookup = {};
+document.addEventListener('dataLoaded', () => {
+    console.log('Data loaded and ready:', groupedData);
 
-// Load CSV data
-window.onload = function() {
-    fetch('../static/Merged_card_user.csv') // Path to CSV file
-        .then(response => response.text())
-        .then(csvData => {
-            Papa.parse(csvData, {
-                complete: function(results) {
-                    personData = results.data; // Assign parsed data
-                    groupByUser(personData);  // Group by User
-                    console.log('Grouped Data:', groupedData);  // Check grouped data
+    // Initialize the search functionality
+    document.getElementById('search').addEventListener('input', filterNames);
+});
 
-                    // Initialize the search functionality
-                    document.getElementById('search').addEventListener('input', filterNames);
-                },
-                header: true,
-                skipEmptyLines: true,
-                delimiter: ",",
-            });
-        })
-        .catch(error => {
-            console.error('Error loading CSV:', error);
-            
-        }); 
-};
-
-    function parseCSV(csvData) {
-        const rows = csvData.split('\n');
-        const headers = rows[0].split(',');
-    
-        rows.slice(1).forEach(row => {
-            const cols = row.split(',');
-    
-            const user = cols[0]; // Unique identifier (e.g., User ID)
-            const personInfo = {
-                name: cols[1],                 // Name
-                currentAge: cols[2],           // Current Age
-                retirementAge: cols[3],        // Retirement Age
-                birthYear: cols[4],            // Birth Year
-                birthMonth: cols[5],           // Birth Month
-                gender: cols[6],               // Gender
-                address: cols[7],              // Address
-                city: cols[8],                 // City
-                state: cols[9],                // State
-                zipcode: cols[10],             // Zipcode
-                latitude: cols[11],            // Latitude
-                longitude: cols[12],           // Longitude
-                perCapitaIncome: cols[13],     // Per Capita Income
-                yearlyIncome: cols[14],        // Yearly Income
-                totalDebt: cols[15],           // Total Debt
-                ficoScore: cols[16],           // FICO Score
-                numCreditCards: cols[17],      // Number of Credit Cards
-            };
-    
-            // Initialize if the user doesn't exist yet
-            if (!personData[user]) {
-                personData[user] = {
-                    info: personInfo,
-                    details: [] // Credit card details will be added here
-                };
-            }
-    
-            // Add the credit card details
-            const cardDetails = {
-                cardType: cols[18],
-                cardNumber: cols[19],
-                expires: cols[20],
-                cvv: cols[21],
-                hasChip: cols[22],
-                creditLimit: cols[23],
-                acctOpenDate: cols[24],
-                yearPinLastChanged: cols[25],
-                cardOnDarkWeb: cols[26]
-            };
-    
-            personData[user].details.push(cardDetails);
-        });
-    }
-// Group the data by User
-function groupByUser(data) {
-    groupedData = {};
-
-    data.forEach(person => {
-        const userId = person.User; // Group by unique User ID
-
-        if (!groupedData[userId]) {
-            groupedData[userId] = {
-                name: person.Person, // Use the `Person` column for the name
-                info: {},            // Add an `info` field for user details
-                details: []          // Store all card details for that user
-            };
-        }
-
-        // Populate the `info` field
-        groupedData[userId].info = {
-            name: person.Person, // Ensure the name is also in the `info` object
-            currentAge: person['Current Age'],
-            retirementAge: person['Retirement Age'],
-            birthYear: person['Birth Year'],
-            birthMonth: person['Birth Month'],
-            gender: person['Gender'],
-            address: person['Address'],
-            city: person['City'],
-            state: person['State'],
-            zipcode: person['Zipcode'],
-            latitude: person['Latitude'],
-            longitude: person['Longitude'],
-            perCapitaIncome: person['Per Capita Income - Zipcode'],
-            yearlyIncome: person['Yearly Income - Person'],
-            totalDebt: person['Total Debt'],
-            ficoScore: person['FICO Score'],
-            numCreditCards: person['Num Credit Cards']
-        };
-
-        // Add the card details to the user’s entry
-        groupedData[userId].details.push({
-            cardType: person['Card Type'],
-            cardNumber: person['Card Number'],
-            expires: person['Expires'],
-            cvv: person['CVV'],
-            hasChip: person['Has Chip'],
-            creditLimit: person['Credit Limit'],
-            acctOpenDate: person['Acct Open Date'],
-            yearPinLastChanged: person['Year PIN last Changed'],
-            cardOnDarkWeb: person['Card on Dark Web']
-        });
-    });
-
-    console.log('Grouped Data:', groupedData); // Log the final grouped structure
-}
-
-
-// Search function to filter unique names as user types
+// Filter users based on search input
 function filterNames() {
-    const searchTerm = document.getElementById('search').value.toLowerCase();
+    const searchTerm = document.getElementById('search').value.toLowerCase().trim();
     const filteredUsers = Object.values(groupedData).filter(user =>
-        user.name.toLowerCase().startsWith(searchTerm)  // Match names starting with the search term
+        user.name.toLowerCase().startsWith(searchTerm)
     );
 
-    displaySearchResults(filteredUsers);
+    displaySearchResults(filteredUsers); // Update the search results dropdown
+
+    if (filteredUsers.length === 1) {
+        // Automatically select the first result if there's only one match
+        showUserDetails(filteredUsers[0]);
+    }
 }
 
-// Display the filtered results with clickable names
+
+// Display filtered search results
 function displaySearchResults(filteredUsers) {
     const resultsContainer = document.getElementById('search-results');
-    resultsContainer.innerHTML = '';  // Clear previous results
+    resultsContainer.innerHTML = ''; // Clear previous results
 
     if (filteredUsers.length === 0) {
         resultsContainer.innerHTML = '<div>No results found</div>';
@@ -155,16 +38,16 @@ function displaySearchResults(filteredUsers) {
     filteredUsers.forEach(user => {
         const resultDiv = document.createElement('div');
         resultDiv.classList.add('result-item');
-        
+
         const nameDiv = document.createElement('div');
         nameDiv.classList.add('result-name');
         nameDiv.textContent = user.name;
-        
-        // Add click event to show card details
+
+        // Add click event to display user details
         nameDiv.addEventListener('click', () => {
-            document.getElementById('search').value = user.name; // Auto-fill the search box
-            showCardDetails(user);  // Show details below
-            clearSearchResults(); // Clear search results
+            document.getElementById('search').value = user.name; // Auto-fill search box
+            showUserDetails(user);
+            clearSearchResults();
         });
 
         resultDiv.appendChild(nameDiv);
@@ -172,91 +55,268 @@ function displaySearchResults(filteredUsers) {
     });
 }
 
-// Clear the search results dropdown
+// Clear search results dropdown
 function clearSearchResults() {
     const resultsContainer = document.getElementById('search-results');
-    resultsContainer.innerHTML = '';  // Clear search results after selection
+    resultsContainer.innerHTML = ''; // Clear search results after selection
 }
 
-
-// Show the full details when a name is clicked
-function showCardDetails(userData) {
-    
-    console.log(personData);
-
-    
+// Show user details and their cards
+function showUserDetails(userData) {
     const detailsContainer = document.getElementById('card-details');
-    detailsContainer.innerHTML = ''; // Clear previous data
+    detailsContainer.innerHTML = ''; // Clear previous details
 
-    // Person's general info
-    const personInfo = userData.info;
-    
-    const personInfoDiv = document.createElement('div');
-    personInfoDiv.classList.add('person-info');
-    
-    personInfoDiv.innerHTML = `
-    <div><strong><span class="underlined">Name : </span></strong><span class="underlined">${personInfo.name}</span></div>
-    <div><strong><span class="underlined">Address : </span></strong><span class="underlined">${personInfo.address}</span></div>
-    <div><strong><span class="underlined">City : </span></strong><span class="underlined">${personInfo.city}</span></div>
-    <div><strong><span class="underlined">State : </span></strong><span class="underlined">${personInfo.state}</span></div>
-    <div><strong><span class="underlined">Zipcode : </span></strong><span class="underlined">${personInfo.zipcode}</span></div>
-    <div><strong><span class="underlined">Birth Month : </span></strong><span class="underlined">${personInfo.birthMonth}</span></div>
-    <div><strong><span class="underlined">Birth Year : </span></strong><span class="underlined">${personInfo.birthYear}</span></div>
-    <div><strong><span class="underlined">Current Age : </span></strong><span class="underlined">${personInfo.currentAge}</span></div>
-    <div><strong><span class="underlined">Retirement Age : </span></strong><span class="underlined">${personInfo.retirementAge}</span></div>
-    <div><strong><span class="underlined">Gender : </span></strong><span class="underlined">${personInfo.gender}</span></div>
-    <div><strong><span class="underlined">Total Debt : </span></strong><span class="underlined">${personInfo.totalDebt}</span></div>
-    <div><strong><span class="underlined">FICO Score : </span></strong><span class="underlined">${personInfo.ficoScore}</span></div>
-    <div><strong><span class="underlined">Num Credit Cards : </span></strong><span class="underlined">${personInfo.numCreditCards}</span></div>
-`;
+    // Display general user info
+    const userInfo = userData.info;
+    const userInfoDiv = document.createElement('div');
+    userInfoDiv.classList.add('user-info');
+    userInfoDiv.innerHTML = `
+        <table>
+            <tr><td><strong>Name:</strong></td><td>${userInfo.name}</td></tr>
+            <tr><td><strong>Address:</strong></td><td>${userInfo.address}</td></tr>
+            <tr><td><strong>City:</strong></td><td>${userInfo.city}</td></tr>
+            <tr><td><strong>State:</strong></td><td>${userInfo.state}</td></tr>
+            <tr><td><strong>Zipcode:</strong></td><td>${userInfo.zipcode}</td></tr>
+            <tr><td><strong>Birth Month:</strong></td><td>${userInfo.birthMonth}</td></tr>
+            <tr><td><strong>Birth Year:</strong></td><td>${userInfo.birthYear}</td></tr>
+            <tr><td><strong>Current Age:</strong></td><td>${userInfo.currentAge}</td></tr>
+            <tr><td><strong>Retirement Age:</strong></td><td>${userInfo.retirementAge}</td></tr>
+            <tr><td><strong>Gender:</strong></td><td>${userInfo.gender}</td></tr>
+            <tr><td><strong>Total Debt:</strong></td><td>${userInfo.totalDebt}</td></tr>
+            <tr><td><strong>FICO Score:</strong></td><td>${userInfo.ficoScore}</td></tr>
+            <tr><td><strong>Num Credit Cards:</strong></td><td>${userInfo.numCreditCards}</td></tr>
+        </table>
+    `;
 
+    detailsContainer.appendChild(userInfoDiv);
 
-
-    detailsContainer.appendChild(personInfoDiv);
-
-    // Add a space before displaying the cards
-    const cardSpace = document.createElement('div');
-    cardSpace.classList.add('card-space');
-    detailsContainer.appendChild(cardSpace);
-    
-    // Add credit card details
+    // Display user card details
     userData.details.forEach((card, index) => {
         const cardDiv = document.createElement('div');
         cardDiv.classList.add('card-info');
-        cardDiv.setAttribute('id', 'card-' + index);
 
         const cardHeader = document.createElement('div');
         cardHeader.classList.add('card-box');
         cardHeader.innerHTML = `<strong>Last 4 Digits: ${card.cardNumber.slice(-4)}</strong><br>
-        <strong>Card Type:</strong> ${card.cardType}`;
+            <strong>Card Type:</strong> ${card.cardType}`;
 
         const cardDetails = document.createElement('div');
         cardDetails.classList.add('card-details');
         cardDetails.style.display = 'none';
         
+        const balanceOrLimit = card.cardType === 'Credit' 
+            ? `<strong>Credit Limit:</strong> ${card.creditLimit}` 
+            : `<strong>Account Balance:</strong> ${card.accountBalance}`;
+
         cardDetails.innerHTML = `
-            <div><strong>Card Number:</strong> ${card.cardNumber.slice(1)}</div>
+            <div><strong>Card Number:</strong> ${card.cardNumber}</div>
             <div><strong>Expires:</strong> ${card.expires}</div>
             <div><strong>CVV:</strong> ${card.cvv}</div>
             <div><strong>Has Chip:</strong> ${card.hasChip}</div>
-            <div><strong>Credit Limit:</strong> ${card.creditLimit}</div>
+            <div>${balanceOrLimit}</div>
             <div><strong>Account Open Date:</strong> ${card.acctOpenDate}</div>
             <div><strong>Year PIN Last Changed:</strong> ${card.yearPinLastChanged}</div>
             <div><strong>Card on Dark Web:</strong> ${card.cardOnDarkWeb}</div>
         `;
 
+        const cardId = userData.info.name.replace(/\s+/g, '_').toLowerCase() + '_' + index;
+        cardLookup[cardId] = card;
+        // Toggle card details visibility and load transactions
         cardHeader.addEventListener('click', function () {
-            cardDetails.style.display = cardDetails.style.display === 'none' ? 'block' : 'none';
+            if (cardDetails.style.display === 'none') {
+                // Expanding
+                cardDetails.style.display = 'block';
+                expandedCards.push(cardId);
+                showChartsForLastExpandedCard();
+            } else {
+                // Collapsing
+                cardDetails.style.display = 'none';
+                expandedCards = expandedCards.filter(id => id !== cardId);
+                showChartsForLastExpandedCard();
+            }
         });
 
         cardDiv.appendChild(cardHeader);
         cardDiv.appendChild(cardDetails);
         detailsContainer.appendChild(cardDiv);
-
-        const blankSpace = document.createElement('div');
-        blankSpace.classList.add('card-space');
-        detailsContainer.appendChild(blankSpace);
     });
+}
+function findCardById(id) {
+    return cardLookup[id];
+}
+
+function showChartsForLastExpandedCard() {
+    const chartsContainer = document.getElementById('charts-container');
+
+    if (expandedCards.length === 0) {
+        chartsContainer.style.display = 'none';
+        resetLayout();
+        destroyCharts(); // Make sure this is defined
+        return;
+    }
+
+    const activeCardId = expandedCards[expandedCards.length - 1];
+    const activeCard = findCardById(activeCardId);
+
+    chartsContainer.style.display = 'flex';
+    document.querySelector('.left-container').style.flex = '2';  
+    document.querySelector('.charts-container').style.flex = '3';
+    document.querySelector('.right-container').style.flex = '5';
+
+    renderCharts(activeCard.transactions, activeCard);
+
+    if (transactionChartInstance) transactionChartInstance.resize();
+    if (locationChartInstance) locationChartInstance.resize();
+}
+
+function destroyCharts() {
+    if (transactionChartInstance) {
+        transactionChartInstance.destroy();
+        transactionChartInstance = null;
+    }
+    if (locationChartInstance) {
+        locationChartInstance.destroy();
+        locationChartInstance = null;
+    }
+}
+
+// Render charts for a given card's transactions
+// Keep references to existing charts
+let transactionChartInstance = null;
+let locationChartInstance = null;
+
+// Render charts for a given card's transactions
+function renderCharts(transactions, card) {
+    if (!transactions || transactions.length === 0) {
+        console.warn('No transactions to render charts.');
+        return;
+    }
+
+    // Sort transactions by Date and then by Time
+    transactions.sort((a, b) => {
+        // Parse the dates and times
+        const dateA = new Date(`${a.date} ${a.time}`);
+        const dateB = new Date(`${b.date} ${b.time}`);
+        return dateA - dateB;
+    });
+
+    // Clear existing charts
+    if (transactionChartInstance) transactionChartInstance.destroy();
+    if (locationChartInstance) transactionChartInstance.destroy();
+
+    // Transaction amounts over time
+    const transactionChartCanvas = document.getElementById('transactionsChart');
+    transactionChartInstance = new Chart(transactionChartCanvas, {
+        type: 'line',
+        data: {
+            labels: transactions.map(t => `${t.date} ${t.time}`),
+            datasets: [{
+                label: 'Transaction Amount ($)',
+                data: transactions.map(t => parseFloat(t.amount.replace(/[$,]/g, '').trim())),
+                borderColor: 'rgba(75, 192, 192, 1)',
+                fill: false,
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { title: { display: true, text: 'Date and Time' } },
+                y: { title: { display: true, text: 'Amount ($)' }, beginAtZero: true }
+            }
+        }
+    });
+
+    // Pie chart: Transaction Sum vs. Balance or Credit Limit
+    const locationChartCanvas = document.getElementById('locationChart');
+    const totalTransactions = transactions.reduce(
+        (sum, t) => sum + parseFloat(t.amount.replace(/[$,]/g, '').trim()),
+        0
+    );
+    const balanceOrLimit = card.cardType === 'Credit'
+        ? parseFloat(card.creditLimit.replace(/[$,]/g, '').trim())
+        : parseFloat(card.accountBalance.replace(/[$,]/g, '').trim());
+
+    locationChartInstance = new Chart(locationChartCanvas, {
+        type: 'pie',
+        data: {
+            labels: ['Transaction Sum', 'Remaining Balance'],
+            datasets: [{
+                data: [totalTransactions, balanceOrLimit],
+                backgroundColor: ['#FF6384', '#36A2EB']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function (tooltipItem) {
+                            return `$${tooltipItem.raw.toFixed(2)}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Ensure charts resize properly
+    setTimeout(() => {
+        transactionChartInstance.resize();
+        locationChartInstance.resize();
+    }, 50);
+
+    const chartsContainer = document.querySelector('.charts-container');
+    chartsContainer.style.display = 'flex';
+
+    // Adjust flex layout for visibility
+    document.querySelector('.left-container').style.flex = '2'; // 20%
+    chartsContainer.style.flex = '3'; // 30%
+    document.querySelector('.right-container').style.flex = '15'; // 50%
 }
 
 
+
+function resetLayout() {
+    const chartsContainer = document.getElementById('charts-container');
+    chartsContainer.style.display = 'none';
+
+    // Reset flex values to original layout
+    document.querySelector('.left-container').style.flex = '2.5';  // 20%
+    document.querySelector('.right-container').style.flex = '7'; // 80%
+
+    // Destroy chart instances to prevent memory leaks
+    if (transactionChartInstance) {
+        transactionChartInstance.destroy();
+        transactionChartInstance = null;
+    }
+    if (locationChartInstance) {
+        locationChartInstance.destroy();
+        locationChartInstance = null;
+    }
+}
+
+
+// Ensure charts resize dynamically on window resize
+window.addEventListener('resize', () => {
+    if (transactionChartInstance) transactionChartInstance.resize();
+    if (locationChartInstance) locationChartInstance.resize();
+});
+
+// Observe changes to the charts container
+const chartsContainer = document.querySelector('.charts-container');
+const resizeObserver = new ResizeObserver(() => {
+    if (transactionChartInstance) transactionChartInstance.resize();
+    if (locationChartInstance) locationChartInstance.resize();
+});
+resizeObserver.observe(chartsContainer);
+
+// Trigger resize after zooming
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && chartsContainer.style.display !== 'none') {
+        if (transactionChartInstance) transactionChartInstance.resize();
+        if (locationChartInstance) locationChartInstance.resize();
+    }
+});

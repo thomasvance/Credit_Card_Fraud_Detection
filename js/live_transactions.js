@@ -8,8 +8,6 @@ const markerLayer = L.layerGroup(); // Use a layer group for better performance
 let dfMerged = []; // Transaction dataset
 let nearbyCitiesDict = {}; // Precomputed nearby cities
 
-
-
 // Initialize Leaflet map
 function initializeMap() {
     const mapContainer = document.getElementById('map');
@@ -34,11 +32,6 @@ function initializeMap() {
 function sample(array) {
     return array[Math.floor(Math.random() * array.length)];
 }
-
-// Helper to validate time format
-// In model.js
-
-
 
 // Add marker to map
 function addMarker(lat, lon, isFraud, transaction) {
@@ -70,41 +63,54 @@ function addMarker(lat, lon, isFraud, transaction) {
         </div>
     `;
 
-    marker.bindPopup(popupContent, { maxWidth: 400 });
+    marker.bindPopup(popupContent, { maxWidth: 600 });
 
-    let isActive = false;
-
-    // Marker click event
     marker.on('click', () => {
-        if (isActive) {
-            resetView();
-            isActive = false;
+        map.setView([lat, lon], 15); // Zoom to marker location
+        marker.openPopup();
+
+        // Lookup user details by card number
+        const user = Object.values(groupedData).find(user =>
+            user.details.some(card => card.cardNumber === transaction.cardNumber)
+        );
+
+        if (user) {
+            // Populate the search bar with the user's name
+            const searchInput = document.getElementById('search');
+            if (searchInput) {
+                searchInput.value = user.name;
+            }
+
+            // Display user details
+            showUserDetails(user);
         } else {
-            map.setView([lat, lon], 15);
-            isActive = true;
+            console.error('User not found for card number:', transaction.cardNumber);
         }
     });
 
-    // Popup close event
     marker.on('popupclose', () => {
-        if (isActive) {
-            resetView();
-            isActive = false;
-        }
+        resetView();
     });
 
-    // Add mouseover event to expand the marker
+    map.on('click', () => {
+        resetView();
+    });
+
     marker.on('mouseover', function () {
         this.setStyle({ radius: 20, fillOpacity: 1 });
     });
 
-    // Add mouseout event to reset the marker size
     marker.on('mouseout', function () {
         this.setStyle({ radius: 8, fillOpacity: 0.8 });
     });
 
     markers.push(marker);
 }
+
+
+
+
+
 
 function resetView() {
     try {
@@ -159,6 +165,15 @@ function precompute(dfMerged) {
     return nearbyCitiesDict;
 }
 
+function validateTimeFormat(time) {
+    const [hours, minutes] = time.split(':').map(Number);
+    if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours >= 24 || minutes < 0 || minutes >= 60) {
+        console.warn(`Invalid time format: ${time}. Defaulting to 12:00.`);
+        return '12:00'; // Default to 12:00 if invalid
+    }
+    return time;
+}
+
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371; // Radius of the Earth in kilometers
     const toRad = (value) => (value * Math.PI) / 180;
@@ -176,7 +191,33 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     return R * c; // Distance in kilometers
 }
 
-async function generateTransactions(card, num, nearbyCitiesDict, dfMerged) {
+async function processTransactionsSequentially(transactions) {
+    for (const transaction of transactions) {
+        try {
+            const isFraud = await predictFraud(transaction);
+            transaction['Is Fraud?'] = isFraud;
+
+            // Format for display after prediction
+            transaction.amount = `$${transaction.amount.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}`;
+
+            addMarker(
+                transaction.latitude,
+                transaction.longitude,
+                isFraud,
+                transaction
+            );
+        } catch (error) {
+            console.error('Error processing transaction:', error);
+        }
+    }
+}
+
+
+
+async function generateTransactions(card, num) {
     const transactions = [];
     for (let i = 0; i < num; i++) {
         try {
@@ -184,36 +225,28 @@ async function generateTransactions(card, num, nearbyCitiesDict, dfMerged) {
             const timeFrame = Math.random() < 0.8 ? 'day' : 'night';
             let time = timeFrame === 'day'
                 ? `${Math.floor(Math.random() * 14 + 6).toString().padStart(2, '0')}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`
-                : `${Math.floor(Math.random() * 6 + 20).toString().padStart(2, '0')}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`;
+                : `${Math.floor(Math.random() * 4 + 20).toString().padStart(2, '0')}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`;
 
-            // time = validateTimeFormat(time); // Validate generated time
+            // Validate time format to ensure no unexpected quotes or invalid formats
+            time = validateTimeFormat(time);
 
-            const amount = Math.random() < 0.8
-                ? `$${(Math.random() * 99 + 1).toFixed(2)}`
+            // Raw format for predictFraud
+            const rawAmount = parseFloat((Math.random() < 0.8
+                ? (Math.random() * 99 + 1)
                 : Math.random() < 0.99
-                ? `$${(Math.random() * 399 + 101).toFixed(2)}`
-                : `$${(Math.random() * 1499 + 501).toFixed(2)}`;
-
-            const isFraud = await predictFraud({
-                amount: amount,
-                latitude: card.Latitude,
-                longitude: card.Longitude,
-                useChip: Math.random() < 0.7 ? 1 : 0,
-                errors: Math.random() < 0.95 ? 'None' : 'Insufficient Funds',
-                date: today,
-                time
-            });
+                ? (Math.random() * 399 + 101)
+                : (Math.random() * 1499 + 501)).toFixed(2));
 
             transactions.push({
                 date: today,
                 time,
-                amount: amount,
+                amount: rawAmount, // Raw format
                 city: card.City,
                 state: card.State,
                 latitude: card.Latitude,
                 longitude: card.Longitude,
-                'Is Fraud?': isFraud,
-                cardNumber: card['Card Number'] // Include card number if present
+                cardNumber: card['Card Number'],
+                useChip: Math.random() < 0.5 ? 1 : 0 // Simulated useChip flag
             });
         } catch (error) {
             console.error('Error generating transaction:', error);
@@ -222,12 +255,13 @@ async function generateTransactions(card, num, nearbyCitiesDict, dfMerged) {
     return transactions;
 }
 
+
 async function generateDynamicTransactions() {
     setInterval(async () => {
         const newTransactions = [];
         for (let i = 0; i < 10; i++) {
             const card = sample(dfMerged); // Randomly pick a card from the dataset
-            const transactions = await generateTransactions(card, 1, nearbyCitiesDict, dfMerged);
+            const transactions = await generateTransactions(card, 1);
             newTransactions.push(...transactions);
         }
 
@@ -239,14 +273,10 @@ async function generateDynamicTransactions() {
             removeOldMarkers(countToRemove);
         }
 
-        newTransactions.forEach(transaction => {
-            if (transaction.latitude && transaction.longitude) {
-                addMarker(transaction.latitude, transaction.longitude, transaction['Is Fraud?'], transaction);
-            }
-        });
+        await processTransactionsSequentially(newTransactions);
 
         console.log('Current Transactions:', transactionList);
-    }, 10000); // Run every 10 seconds
+    }, 4000); // Run every 10 seconds
 }
 
 function removeOldMarkers(count) {
@@ -282,6 +312,7 @@ async function initializeApp() {
         console.error('Error during initialization:', error);
     }
 }
+
 
 
 // Start the application

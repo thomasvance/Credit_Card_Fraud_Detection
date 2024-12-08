@@ -34,8 +34,8 @@ header {
 /* Left: 20%, Right: 80% when charts are hidden */
 .left-container {
     flex: 0 0 300px; /* Fixed width of 300px */
-    max-width: 300px;
-    min-width: 300px;
+    max-width: 325px;
+    min-width: 325px;
     height: 100%;
     background: white;
     border-radius: 8px;
@@ -91,7 +91,7 @@ canvas {
 /* Search Input */
 .search-section {
     margin-bottom: 10px;
-    width: 95%;
+    width: 80%;
 }
 
 .search-section input {

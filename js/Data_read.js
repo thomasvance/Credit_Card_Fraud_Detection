@@ -1,11 +1,6 @@
-// Data_read.js
-
-let personData = [];
-let transactionsData = [];
-let groupedData = {};
-
-
-
+let personData = []; // Store users data
+let transactionsData = []; // Store transactions data
+let groupedData = {}; // Store combined data
 
 // Lookup table for transactions
 let transactionLookup = {};
@@ -33,24 +28,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function loadPersonData() {
     return new Promise((resolve, reject) => {
-        fetch('../static/Merged_card_user.csv')
-            .then(response => response.text())
-            .then(csvData => {
-                Papa.parse(csvData, {
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: function (results) {
-                        personData = results.data.map(person => ({
-                            ...person,
-                            'Card Number': person['Card Number'].slice(1), // Remove backtick
-                            'CVV': person['CVV'].slice(1) // Remove backtick
-                        }));
-                        resolve();
-                    },
-                    error: function (error) {
-                        reject(error);
-                    }
-                });
+        fetch('../static/Merged_card_user.json')
+            .then(response => response.json())
+            .then(data => {
+                personData = data.map(person => ({
+                    ...person,
+                    'Card Number': person['Card Number'],
+                    'CVV': person['CVV']
+                }));
+                resolve();
             })
             .catch(error => reject(error));
     });
@@ -58,24 +44,15 @@ function loadPersonData() {
 
 function loadTransactionData() {
     return new Promise((resolve, reject) => {
-        fetch('../static/mock_transactions.csv')
-            .then(response => response.text())
-            .then(csvData => {
-                Papa.parse(csvData, {
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: function (results) {
-                        transactionsData = results.data.map(transaction => ({
-                            ...transaction,
-                            'Card Number': transaction['Card Number'].slice(1), // Remove backtick
-                            'CVV': transaction['CVV'].slice(1) // Remove backtick
-                        }));
-                        resolve();
-                    },
-                    error: function (error) {
-                        reject(error);
-                    }
-                });
+        fetch('../static/mock_transactions.json')
+            .then(response => response.json())
+            .then(data => {
+                transactionsData = data.map(transaction => ({
+                    ...transaction,
+                    'Card Number': transaction['Card Number'],
+                    'CVV': transaction['CVV']
+                }));
+                resolve();
             })
             .catch(error => reject(error));
     });
@@ -92,7 +69,7 @@ function buildTransactionLookup() {
         transactionLookup[key].push({
             date: transaction['Date'],
             time: transaction['Time'],
-            amount: transaction['Amount'],
+            amount: `$${parseFloat(transaction['Amount'])}`, // Ensure amount has $ prefix
             errors: transaction['Errors?'],
             useChip: transaction['Use Chip'],
             isFraud: transaction['Is Fraud?'],
@@ -136,23 +113,36 @@ function combineData() {
                 details: []
             };
         }
+        const cardTransactions = transactionLookup[`${person['Card Number']}_${person['CVV']}`] || [];
+        const transactionSum = cardTransactions.reduce((sum, t) => sum + parseFloat(t.amount.replace('$', '')), 0);
 
         groupedData[userId].details.push({
             cardType: person['Card Type'],
-            cardNumber: person['Card Number'],
+            cardNumber: String(person['Card Number']),
             expires: person['Expires'],
             cvv: person['CVV'],
             hasChip: person['Has Chip'],
-            creditLimit: person['Credit Limit'],
-            accountBalance: person['Account Balance'],
+            creditLimit: person['Credit Limit'], // No additional formatting needed
+            accountBalance: person['Account Balance'], // No additional formatting needed
             acctOpenDate: person['Acct Open Date'],
             yearPinLastChanged: person['Year PIN last Changed'],
             cardOnDarkWeb: person['Card on Dark Web'],
-            transactions: transactionLookup[`${person['Card Number']}_${person['CVV']}`] || []
+            transactions: cardTransactions,
+            transactionSum
         });
     });
-}
 
+    // Sync with Fraud_Alert.js variables
+    expandedCards = [];
+    cardLookup = Object.fromEntries(
+        Object.values(groupedData).flatMap(user => 
+            user.details.map((card, index) => {
+                const cardId = `${user.info.name.replace(/\s+/g, '_').toLowerCase()}_${index}`;
+                return [cardId, card];
+            })
+        )
+    );
+}
 function capitalizeName(name) {
     return name
         .split(' ')

@@ -33,20 +33,23 @@ header {
 
 /* Left: 20%, Right: 80% when charts are hidden */
 .left-container {
-    flex: 1; /* Out of a total of 2+8=10, this is 20% */
-    height: auto;
+    flex: 0 0 300px; /* Fixed width of 300px */
+    max-width: 300px;
+    min-width: 300px;
+    height: 100%;
     background: white;
     border-radius: 8px;
     overflow-y: auto;
 }
 
 .right-container {
-    flex: 8; /* Out of 2+8=10, ~80% */
-    background: white;
-    border-radius: 8px;
     display: flex;
     flex-direction: column;
+    flex: 7;
+    max-height: 100%; /* Prevent infinite growth */
+    overflow: hidden;
 }
+
 
 .map {
     flex: 1;
@@ -63,24 +66,25 @@ header {
 
 /* Charts container hidden initially */
 .charts-container {
-    display: none;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    flex-direction: column;
-    gap: 5px;
+    display: flex;
+    flex-direction: column; /* Stack charts vertically */
+    gap: 10px; /* Space between charts */
+    max-height: 100%; /* Prevent growing beyond its parent container */
+    overflow: hidden; /* Prevent content overflow */
 }
 
 /* Chart wrapper takes half height each when visible */
 .chart-wrapper {
-    flex: 1;
-    position: relative;
-    gap: 5px;
+    flex: 1; /* Equal height for each chart */
+    position: relative; /* Required for Chart.js to position elements correctly */
+    max-height: 50%; /* Prevent it from occupying more space than intended */
+    overflow: hidden; /* Prevent overflow issues */
 }
 
 canvas {
     width: 100% !important;
     height: 100% !important;
+    box-sizing: border-box;
 }
 
 

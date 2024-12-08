@@ -1,4 +1,5 @@
 // Fraud_Alert.js
+// Fraud_Alert.js
 let expandedCards = [];
 let cardLookup = {};
 document.addEventListener('dataLoaded', () => {
@@ -15,8 +16,14 @@ function filterNames() {
         user.name.toLowerCase().startsWith(searchTerm)
     );
 
-    displaySearchResults(filteredUsers);
+    displaySearchResults(filteredUsers); // Update the search results dropdown
+
+    if (filteredUsers.length === 1) {
+        // Automatically select the first result if there's only one match
+        showUserDetails(filteredUsers[0]);
+    }
 }
+
 
 // Display filtered search results
 function displaySearchResults(filteredUsers) {
@@ -156,7 +163,7 @@ function showChartsForLastExpandedCard() {
     document.querySelector('.charts-container').style.flex = '3';
     document.querySelector('.right-container').style.flex = '5';
 
-    renderCharts(activeCard.transactions);
+    renderCharts(activeCard.transactions, activeCard);
 
     if (transactionChartInstance) transactionChartInstance.resize();
     if (locationChartInstance) locationChartInstance.resize();
@@ -173,26 +180,29 @@ function destroyCharts() {
     }
 }
 
-
 // Render charts for a given card's transactions
 // Keep references to existing charts
 let transactionChartInstance = null;
 let locationChartInstance = null;
 
 // Render charts for a given card's transactions
-function renderCharts(transactions) {
+function renderCharts(transactions, card) {
     if (!transactions || transactions.length === 0) {
         console.warn('No transactions to render charts.');
         return;
     }
 
+    // Sort transactions by Date and then by Time
+    transactions.sort((a, b) => {
+        // Parse the dates and times
+        const dateA = new Date(`${a.date} ${a.time}`);
+        const dateB = new Date(`${b.date} ${b.time}`);
+        return dateA - dateB;
+    });
+
     // Clear existing charts
-    if (transactionChartInstance) {
-        transactionChartInstance.destroy();
-    }
-    if (locationChartInstance) {
-        locationChartInstance.destroy();
-    }
+    if (transactionChartInstance) transactionChartInstance.destroy();
+    if (locationChartInstance) transactionChartInstance.destroy();
 
     // Transaction amounts over time
     const transactionChartCanvas = document.getElementById('transactionsChart');
@@ -202,7 +212,7 @@ function renderCharts(transactions) {
             labels: transactions.map(t => `${t.date} ${t.time}`),
             datasets: [{
                 label: 'Transaction Amount ($)',
-                data: transactions.map(t => parseFloat(t.amount.replace('$', '').trim())),
+                data: transactions.map(t => parseFloat(t.amount.replace(/[$,]/g, '').trim())),
                 borderColor: 'rgba(75, 192, 192, 1)',
                 fill: false,
                 tension: 0.1
@@ -210,7 +220,7 @@ function renderCharts(transactions) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true, // Allow flexibility in container dimensions
+            maintainAspectRatio: false,
             scales: {
                 x: { title: { display: true, text: 'Date and Time' } },
                 y: { title: { display: true, text: 'Amount ($)' }, beginAtZero: true }
@@ -218,51 +228,66 @@ function renderCharts(transactions) {
         }
     });
 
-    // Transaction locations (scatter plot)
+    // Pie chart: Transaction Sum vs. Balance or Credit Limit
     const locationChartCanvas = document.getElementById('locationChart');
+    const totalTransactions = transactions.reduce(
+        (sum, t) => sum + parseFloat(t.amount.replace(/[$,]/g, '').trim()),
+        0
+    );
+    const balanceOrLimit = card.cardType === 'Credit'
+        ? parseFloat(card.creditLimit.replace(/[$,]/g, '').trim())
+        : parseFloat(card.accountBalance.replace(/[$,]/g, '').trim());
+
     locationChartInstance = new Chart(locationChartCanvas, {
-        type: 'scatter',
+        type: 'pie',
         data: {
+            labels: ['Transaction Sum', 'Remaining Balance'],
             datasets: [{
-                label: 'Transaction Locations',
-                data: transactions.map(t => ({ x: t.latitude, y: t.longitude })),
-                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                borderColor: 'rgba(255, 99, 132, 1)',
-                borderWidth: 1
+                data: [totalTransactions, balanceOrLimit],
+                backgroundColor: ['#FF6384', '#36A2EB']
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
-            scales: {
-                x: { title: { display: true, text: 'Latitude' } },
-                y: { title: { display: true, text: 'Longitude' } }
+            maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function (tooltipItem) {
+                            return `$${tooltipItem.raw.toFixed(2)}`;
+                        }
+                    }
+                }
             }
-            
         }
+    });
 
+    // Ensure charts resize properly
+    setTimeout(() => {
+        transactionChartInstance.resize();
+        locationChartInstance.resize();
+    }, 50);
 
-    });        
-    document.getElementById('charts-container').style.display = 'flex';
+    const chartsContainer = document.querySelector('.charts-container');
+    chartsContainer.style.display = 'flex';
 
-    // Adjust flex values for desired layout
-    document.querySelector('.left-container').style.flex = '2';  // 20%
-    document.querySelector('.charts-container').style.flex = '3'; // 30%
-    document.querySelector('.right-container').style.flex = '5';  // 50%
-
-    // If needed, call chart.resize() after container is visible
-    if (transactionChartInstance) transactionChartInstance.resize();
-    if (locationChartInstance) locationChartInstance.resize();
+    // Adjust flex layout for visibility
+    document.querySelector('.left-container').style.flex = '2'; // 20%
+    chartsContainer.style.flex = '3'; // 30%
+    document.querySelector('.right-container').style.flex = '15'; // 50%
 }
+
+
+
 function resetLayout() {
-    // Hide the charts container
-    document.getElementById('charts-container').style.display = 'none';
+    const chartsContainer = document.getElementById('charts-container');
+    chartsContainer.style.display = 'none';
 
     // Reset flex values to original layout
-    document.querySelector('.left-container').style.flex = '2';  // 20%
-    document.querySelector('.right-container').style.flex = '8'; // 80%
+    document.querySelector('.left-container').style.flex = '2.5';  // 20%
+    document.querySelector('.right-container').style.flex = '7'; // 80%
 
-    // If you have chart instances, destroy them to prevent memory leaks
+    // Destroy chart instances to prevent memory leaks
     if (transactionChartInstance) {
         transactionChartInstance.destroy();
         transactionChartInstance = null;
@@ -273,8 +298,25 @@ function resetLayout() {
     }
 }
 
-// Call resetLayout whenever the user starts a new search
-document.getElementById('search').addEventListener('input', () => {
-    resetLayout();
+
+// Ensure charts resize dynamically on window resize
+window.addEventListener('resize', () => {
+    if (transactionChartInstance) transactionChartInstance.resize();
+    if (locationChartInstance) locationChartInstance.resize();
 });
 
+// Observe changes to the charts container
+const chartsContainer = document.querySelector('.charts-container');
+const resizeObserver = new ResizeObserver(() => {
+    if (transactionChartInstance) transactionChartInstance.resize();
+    if (locationChartInstance) locationChartInstance.resize();
+});
+resizeObserver.observe(chartsContainer);
+
+// Trigger resize after zooming
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && chartsContainer.style.display !== 'none') {
+        if (transactionChartInstance) transactionChartInstance.resize();
+        if (locationChartInstance) locationChartInstance.resize();
+    }
+});

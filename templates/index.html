@@ -3,34 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Credrit Card Fraud Detection</title>
-    <link rel="stylesheet" href="../static/styles.css">
-
+    <title>Credit Card Fraud Detection</title>
+    <link rel="stylesheet" href="../static/styles.css"> <!-- Link to styles.css only once -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    
 </head>
 <body>
     <header>
-        <h1> Credit Card Fraud Detection </h1>
-    
-    <!-- Embed the map -->
-    
+        <h1 class="combined-effect">Credit Card Fraud Detection</h1>
+        <style>
+            .combined-effect {
+                font-size: 2rem;
+                font-weight: bold;
+                color: #fff; /* Text color */
+                text-shadow: 
+                    2px 2px 4px rgb(0, 0, 0),  /* 3D shadow effect */
+                    0 0 5px rgb(2, 2, 2),     /* Glow layer 1 */
+                    0 0 10px rgb(0, 0, 0),    /* Glow layer 2 */
+                    0 0 15px rgb(0, 0, 0);    /* Glow layer 3 */
+            }
+        </style>
     </header>
-    <link rel="stylesheet" href="../static/styles.css"> <!-- Link to styles.css -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script> <!-- PapaParse for CSV parsing -->
-    <script src="../js/Data_read.js" defer></script> 
-    <script src="../js/Fraud_Alert.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-
-
-
-</head>
-<body>
-
-
 
     <div class="main-container">
-        <!-- Left Side -->
+        <!-- Left Side: Search and details -->
         <div class="left-container">
             <div class="search-section">
                 <input type="text" id="search" placeholder="Search for a person..." oninput="filterNames()">
@@ -41,10 +37,11 @@
     
         <!-- Middle Container: Map -->
         <div class="right-container">
-            <div class="map">
-                <iframe src="../static/user_map.html" id="map-iframe"></iframe>
-            </div>
+            <div id="map" style="width: 100%; height: 100%;"></div>
         </div>
+        <div id="card-details" class="card-details"></div>
+
+        <!-- Right Container: Charts -->
         <div class="charts-container" id="charts-container" style="display: none;">
             <div class="chart-wrapper">
                 <canvas id="transactionsChart"></canvas>
@@ -53,30 +50,19 @@
                 <canvas id="locationChart"></canvas>
             </div>
         </div>
-    <!-- <script src="../js/Fraud_Alert.js" defer></script> Link to external JavaScript file -->
+    </div>
 
-    <script>
-        // Function to load and parse the CSV file directly from the static folder
-        // window.onload = function() {
-        //     fetch('../static/Merged_card_user.csv')  // Path to the CSV file in the static folder
-        //         .then(response => response.text())
-        //         .then(csvData => {
-        //             // Use PapaParse to parse the CSV data
-        //             Papa.parse(csvData, {
-        //                 complete: function(results) {
-        //                     console.log('Parsed CSV:', results);
-        //                     displayCSVData(results.data); // Display parsed data
-        //                 },
-        //                 header: true // Set to true if the first row contains headers
-        //             });
-        //         })
-        //         .catch(error => {
-        //             console.error('Error loading CSV:', error);
-        //         });
-        // };
+    <!-- External Libraries and Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script> <!-- PapaParse for CSV parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script> <!-- TensorFlow.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Chart.js -->
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 
-        // Function to display CSV data as a table
-        
-    </script>
+    <!-- Local Scripts -->
+    <script src="../js/Data_read.js" defer></script>
+    <script src="../js/model.js" type="module"></script>
+    <script src="../js/live_transactions.js" type="module"></script>
+    <script src="../js/Fraud_Alert.js" defer></script>
+   
 </body>
 </html>

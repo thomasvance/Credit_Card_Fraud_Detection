@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function loadPersonData() {
     return new Promise((resolve, reject) => {
-        fetch('../static/Merged_card_user.json')
+        fetch('static/Merged_card_user.json')
             .then(response => response.json())
             .then(data => {
                 personData = data.map(person => ({
@@ -44,7 +44,7 @@ function loadPersonData() {
 
 function loadTransactionData() {
     return new Promise((resolve, reject) => {
-        fetch('../static/mock_transactions.json')
+        fetch('static/mock_transactions.json')
             .then(response => response.json())
             .then(data => {
                 transactionsData = data.map(transaction => ({

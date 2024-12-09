@@ -291,7 +291,7 @@ function removeOldMarkers(count) {
 async function initializeApp() {
     try {
         // Load dataset
-        const response = await fetch('../static/Merged_card_user.json');
+        const response = await fetch('static/Merged_card_user.json');
         if (!response.ok) throw new Error('Failed to load transaction dataset.');
         dfMerged = await response.json();
 

@@ -3,7 +3,7 @@ let model;
 // Load the model
 export async function loadModel() {
     try {
-        model = await tf.loadLayersModel('../static/model/model.json');
+        model = await tf.loadLayersModel('static/model/model.json');
         console.log('Deep learning model loaded successfully.');
     } catch (error) {
         console.error('Error loading model:', error);

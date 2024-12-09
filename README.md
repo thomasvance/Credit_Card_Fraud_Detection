@@ -62,6 +62,9 @@ Showing the customers transaction amounts and their balance in their accounts.
 
 This dashboard is functional through github. In order to run the dashboard you must: 
 
+1. Open our github page.
+2. Click on our github pages.
+3. Deploy dashboard through github.
 
 # Features for Future Updates.
 

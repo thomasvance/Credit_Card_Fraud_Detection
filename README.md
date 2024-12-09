@@ -26,6 +26,9 @@ There were many resources we used to develop our dashboard to make it function. 
 
 Search Bar:
 
+![image](https://github.com/user-attachments/assets/68dfb450-b997-49da-9aa0-c6f2dc7b5b8d)
+
+
 In place where users can search for any customer and see their card information.
 Additionally the search bar stores history of searches.
 

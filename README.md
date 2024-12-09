@@ -20,9 +20,8 @@ There were many resources we used to develop our dashboard to make it function. 
   2. Creating mock data in python using pandas, sklearn, tensorflow, and vscode.
   3. Cleaning our main dataset in python using pandas.
   4. Model creation for deep learning using RNN and random forest. 
-  5. Database creation using pymongo and mongodb.
-  6. Bootstrap for html and css to style and create a base model for our dashboard.
-  7. Javascript.
+  5. Bootstrap for html and css to style and create a base model for our dashboard.
+  6. Javascript dashboard creation.
 
 # Dashboard Features: 
 
@@ -66,7 +65,8 @@ This dashboard is functional through github. In order to run the dashboard you m
 
 # Features for Future Updates.
 
-- 
+- Better model for fraud detection.
+- Model with higher accuracy and recall scores. 
 
 
 

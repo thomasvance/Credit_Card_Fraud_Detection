@@ -24,7 +24,7 @@ There were many resources we used to develop our dashboard to make it function. 
 
 # Dashboard Features: 
 
-Search Bar:
+**Search Bar**
 
 ![image](https://github.com/user-attachments/assets/68dfb450-b997-49da-9aa0-c6f2dc7b5b8d)
 
@@ -38,7 +38,7 @@ Additionally the search bar stores history of searches.
 ![image](https://github.com/user-attachments/assets/4bf35278-2394-46ab-a9ab-327408289ac4)
 
 
-Showing places on the map where there are transactions. Color coded to show green as good transactions and red as potential fraudulent charges. 
+Showing places on the map where there are transactions in real time. Color coded to show green as good transactions and red as potential fraudulent charges. 
 
 
 **Customer Information**
@@ -48,6 +48,12 @@ Showing places on the map where there are transactions. Color coded to show gree
 
 Upon searching for a card customer we can see their general card info such as their balance and their recent transactions. 
 
+**Line and Pie charts** 
+
+![image](https://github.com/user-attachments/assets/349e28c8-5fbf-4f22-a839-190788f505f9)
+
+
+Showing the customers transaction amounts and their balance in their accounts. 
 
 
 

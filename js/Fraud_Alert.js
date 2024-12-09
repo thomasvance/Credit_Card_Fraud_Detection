@@ -160,7 +160,7 @@ function showChartsForLastExpandedCard() {
 
     chartsContainer.style.display = 'flex';
     document.querySelector('.left-container').style.flex = '2';  
-    document.querySelector('.charts-container').style.flex = '3';
+    document.querySelector('.charts-container').style.flex = '2';
     document.querySelector('.right-container').style.flex = '5';
 
     renderCharts(activeCard.transactions, activeCard);

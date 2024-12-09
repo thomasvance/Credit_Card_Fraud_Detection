@@ -271,10 +271,10 @@ function renderCharts(transactions, card) {
     const chartsContainer = document.querySelector('.charts-container');
     chartsContainer.style.display = 'flex';
 
-    // Adjust flex layout for visibility
-    document.querySelector('.left-container').style.flex = '2'; // 20%
-    chartsContainer.style.flex = '3'; // 30%
-    document.querySelector('.right-container').style.flex = '15'; // 50%
+    // // Adjust flex layout for visibility
+    // document.querySelector('.left-container').style.flex = '2'; // 20%
+    // chartsContainer.style.flex = '3'; // 30%
+    // document.querySelector('.right-container').style.flex = '15'; // 50%
 }
 
 

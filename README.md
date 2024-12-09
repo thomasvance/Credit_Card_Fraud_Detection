@@ -9,6 +9,8 @@ In todays world, purchases and transactions have become reliant on digital platf
 
 **Dataset used:**
 
+- Kaggle Card dataset.
+- Mock data created in python. 
 
 
 # Process:
@@ -64,7 +66,8 @@ This dashboard is functional through github. In order to run the dashboard you m
 
 # Features for Future Updates.
 
-  
+- 
+
 
 
 

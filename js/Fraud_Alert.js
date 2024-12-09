@@ -202,7 +202,7 @@ function renderCharts(transactions, card) {
 
     // Clear existing charts
     if (transactionChartInstance) transactionChartInstance.destroy();
-    if (locationChartInstance) transactionChartInstance.destroy();
+    if (locationChartInstance) locationChartInstance.destroy();
 
     // Transaction amounts over time
     const transactionChartCanvas = document.getElementById('transactionsChart');

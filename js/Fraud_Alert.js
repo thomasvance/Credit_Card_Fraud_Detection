@@ -160,7 +160,7 @@ function showChartsForLastExpandedCard() {
 
     chartsContainer.style.display = 'flex';
     document.querySelector('.left-container').style.flex = '2';  
-    document.querySelector('.charts-container').style.flex = '3';
+    document.querySelector('.charts-container').style.flex = '2';
     document.querySelector('.right-container').style.flex = '5';
 
     renderCharts(activeCard.transactions, activeCard);
@@ -271,10 +271,10 @@ function renderCharts(transactions, card) {
     const chartsContainer = document.querySelector('.charts-container');
     chartsContainer.style.display = 'flex';
 
-    // Adjust flex layout for visibility
-    document.querySelector('.left-container').style.flex = '2'; // 20%
-    chartsContainer.style.flex = '3'; // 30%
-    document.querySelector('.right-container').style.flex = '15'; // 50%
+    // // Adjust flex layout for visibility
+    // document.querySelector('.left-container').style.flex = '2'; // 20%
+    // chartsContainer.style.flex = '3'; // 30%
+    // document.querySelector('.right-container').style.flex = '15'; // 50%
 }
 
 

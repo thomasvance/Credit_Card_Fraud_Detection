@@ -123,18 +123,31 @@ function showUserDetails(userData) {
         cardLookup[cardId] = card;
         // Toggle card details visibility and load transactions
         cardHeader.addEventListener('click', function () {
+            // Collapse any currently expanded card
+            if (expandedCards.length > 0) {
+                const previouslyExpandedCardId = expandedCards[0]; // Assuming only one card can be expanded
+                const previouslyExpandedCardHeader = document.querySelector(`[data-card-id="${previouslyExpandedCardId}"]`);
+                if (previouslyExpandedCardHeader && previouslyExpandedCardHeader !== cardHeader) {
+                    previouslyExpandedCardHeader.click(); // Simulate a click to collapse it
+                }
+            }
+        
+            // Toggle the clicked card
             if (cardDetails.style.display === 'none') {
                 // Expanding
                 cardDetails.style.display = 'block';
-                expandedCards.push(cardId);
+                expandedCards = [cardId];
                 showChartsForLastExpandedCard();
             } else {
                 // Collapsing
                 cardDetails.style.display = 'none';
-                expandedCards = expandedCards.filter(id => id !== cardId);
+                expandedCards = [];
                 showChartsForLastExpandedCard();
             }
         });
+        
+        // Add the unique data attribute to the card header for identification
+        cardHeader.setAttribute('data-card-id', cardId);
 
         cardDiv.appendChild(cardHeader);
         cardDiv.appendChild(cardDetails);

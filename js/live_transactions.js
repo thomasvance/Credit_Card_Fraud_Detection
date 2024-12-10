@@ -51,7 +51,11 @@ function addMarker(lat, lon, isFraud, transaction) {
     }).addTo(markerLayer);
 
     const popupContent = `
-        <div style="font-size: 14px; padding: 10px; max-width: 300px;">
+    
+        <div style="font-size: 14px; padding: 10px; max-width: 300px;
+        border: 5px solid ${isFraud ? '#dc3545' : '#28a745'};
+        background: #f9f9f9;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
             <h3>Transaction Details</h3>
             <p><strong>Card Number:</strong> ${transaction.cardNumber ? transaction.cardNumber.slice(-4).padStart(transaction.cardNumber.length, '*') : 'N/A'}</p>
             <p><strong>Amount:</strong> ${transaction.amount}</p>
@@ -156,7 +160,7 @@ function precompute(dfMerged) {
         const nearbyCities = dfMerged.filter(otherCity => {
             const { Latitude: lat2, Longitude: lon2 } = otherCity;
             const distance = calculateDistance(lat1, lon1, lat2, lon2);
-            return distance <= 100; // Define the radius in kilometers
+            return distance <= 1500; // Define the radius in kilometers
         });
 
         nearbyCitiesDict[`${lat1},${lon1}`] = nearbyCities;
@@ -276,7 +280,7 @@ async function generateDynamicTransactions() {
         await processTransactionsSequentially(newTransactions);
 
         console.log('Current Transactions:', transactionList);
-    }, 4000); // Run every 10 seconds
+    }, 30000); // Run every 10 seconds
 }
 
 function removeOldMarkers(count) {

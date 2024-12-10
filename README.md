@@ -69,7 +69,8 @@ This dashboard is functional through github. In order to run the dashboard you m
 # Features for Future Updates.
 
 - Better model for fraud detection.
-- Model with higher accuracy and recall scores. 
+- Model with higher accuracy and recall scores.
+- Transaction ID generation in our dataset.
 
 
 

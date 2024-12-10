@@ -28,7 +28,8 @@ There were many resources we used to develop our dashboard to make it function. 
 
 **Search Bar**
 
-![image](https://github.com/user-attachments/assets/68dfb450-b997-49da-9aa0-c6f2dc7b5b8d)
+![image](https://github.com/user-attachments/assets/0b0bf54c-7c65-478e-af43-a66fa3fdbca0)
+
 
 
 In place where users can search for any customer and see their card information.
@@ -45,14 +46,16 @@ Showing places on the map where there are transactions in real time. Color coded
 
 **Customer Information**
 
-![image](https://github.com/user-attachments/assets/78fa1234-6d88-4610-9501-fdcb23e01e82)
+![image](https://github.com/user-attachments/assets/9a17a84c-1f5f-40a3-bff9-ff8899e0f9f4)
+
 
 
 Upon searching for a card customer we can see their general card info such as their balance and their recent transactions. 
 
 **Line and Pie charts** 
 
-![image](https://github.com/user-attachments/assets/349e28c8-5fbf-4f22-a839-190788f505f9)
+![image](https://github.com/user-attachments/assets/391a7c6a-d20e-4464-803f-4821fd55c6a3)
+
 
 
 Showing the customers transaction amounts and their balance in their accounts. 

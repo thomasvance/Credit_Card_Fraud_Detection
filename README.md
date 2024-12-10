@@ -71,6 +71,7 @@ This dashboard is functional through github. In order to run the dashboard you m
 - Better model for fraud detection.
 - Model with higher accuracy and recall scores.
 - Transaction ID generation in our dataset.
+- Addition of a fuzzy search or approximate string matching.
 
 
 

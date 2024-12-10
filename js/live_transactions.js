@@ -1,6 +1,7 @@
 import { loadModel, predictFraud } from './model.js';
 
-const maxTransactions = 100;
+const maxTransactions = 200;
+const interval = 30000
 let transactionList = []; // To store transactions
 let map; // Leaflet map instance
 let markers = []; // To store map markers
@@ -280,7 +281,7 @@ async function generateDynamicTransactions() {
         await processTransactionsSequentially(newTransactions);
 
         console.log('Current Transactions:', transactionList);
-    }, 30000); // Run every 10 seconds
+    }, interval); // Run every 10 seconds
 }
 
 function removeOldMarkers(count) {

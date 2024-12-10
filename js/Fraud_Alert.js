@@ -213,15 +213,62 @@ function renderCharts(transactions, card) {
             datasets: [{
                 label: 'Transaction Amount ($)',
                 data: transactions.map(t => parseFloat(t.amount.replace(/[$,]/g, '').trim())),
-                borderColor: 'rgba(75, 192, 192, 1)',
+                borderColor: 'rgba(255, 255, 25, 1)',
                 fill: false,
                 tension: 0.1
+                
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Date and Time',
+                        color: '#000',
+                        font: {
+                            size: 14,
+                            weight: 'bold',
+                            color: '#000' // Darker font color for the X-axis title
+                        }
+                    },
+                    ticks: {
+                        color: '#000' // Darker font color for X-axis labels
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Amount ($)',
+                        color: '#000',
+                        font: {
+                            size: 14,
+                            weight: 'bold',
+                            color: '#000' // Darker font color for the Y-axis title
+                        }
+                    },
+                    ticks: {
+                        color: '#000' // Darker font color for Y-axis labels
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#000' // Darker font color for legend text
+                    }
+                },
+                tooltip: {
+                    titleFont: {
+                        size: 14,
+                        color: '#000' // Darker font color for tooltip titles
+                    },
+                    bodyFont: {
+                        size: 12,
+                        color: '#000' // Darker font color for tooltip body
+                    }},
                 x: { title: { display: true, text: 'Date and Time' } },
                 y: { title: { display: true, text: 'Amount ($)' }, beginAtZero: true }
             }
@@ -244,23 +291,42 @@ function renderCharts(transactions, card) {
             labels: ['Transaction Sum', 'Remaining Balance'],
             datasets: [{
                 data: [totalTransactions, balanceOrLimit],
-                backgroundColor: ['#FF6384', '#36A2EB']
+                
+                backgroundColor: ['rgb(255,0,0,1)', 'rgb(0,0,255,1)']
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
+                legend: {
+                    labels: {
+                        color: '#000', // Darker font color
+                        font: {
+                            size: 16, // Font size for legend
+                            weight: 'bold' // Bold font for legend
+                        }
+                    }
+                },
                 tooltip: {
                     callbacks: {
                         label: function (tooltipItem) {
                             return `$${tooltipItem.raw.toFixed(2)}`;
                         }
+                    },
+                    titleFont: {
+                        size: 14, // Font size for tooltip title
+                        weight: 'bold' // Bold font for tooltip title
+                    },
+                    bodyFont: {
+                        size: 12, // Font size for tooltip body
+                        weight: 'bold' // Bold font for tooltip body
                     }
                 }
             }
         }
     });
+    
 
     // Ensure charts resize properly
     setTimeout(() => {

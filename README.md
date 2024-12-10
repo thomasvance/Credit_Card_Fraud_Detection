@@ -4,7 +4,8 @@
 
 In todays world, purchases and transactions have become reliant on digital platforms. Due to the simplicity of swiping a card or inputing a number into an online shopping cart. Thus making it harder to protect ones information. With issues such as scalablity, data privacy security, and real time detection it makes it harder for companies to detect and predict when potential fraudulent charges are being made. In an attempt to make this process easier we created a dashboard that will help card issuers better predit when a fraudulent transaction is being made. 
 
-![image](https://github.com/user-attachments/assets/ca2977af-b5cc-4b02-9485-0870ee54b857)
+![image](https://github.com/user-attachments/assets/511cc0c4-c409-42c9-8f85-374b570d1252)
+
 
 
 **Dataset used:**
